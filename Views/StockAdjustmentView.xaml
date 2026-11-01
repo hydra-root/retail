@@ -1,0 +1,103 @@
+<UserControl x:Class="RetailBillingApp.Views.StockAdjustmentView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             d:DesignHeight="600" d:DesignWidth="1000">
+    <Grid Background="{StaticResource BackgroundBrush}" Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,20">
+            <TextBlock Text="Stock Adjustment" Style="{StaticResource HeadingTextBlock}" />
+        </StackPanel>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="3*" />
+                <ColumnDefinition Width="2*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Product List -->
+            <Border Grid.Column="0" Style="{StaticResource CardBorder}">
+                <DockPanel>
+                    <StackPanel DockPanel.Dock="Top" Margin="0,0,0,15">
+                        <TextBlock Text="All Products" Style="{StaticResource SubHeadingTextBlock}" />
+                    </StackPanel>
+
+                    <DataGrid ItemsSource="{Binding Products}" SelectedItem="{Binding SelectedProduct}"
+                              Style="{StaticResource DataGridStyle}" AutoGenerateColumns="False">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*" />
+                            <DataGridTextColumn Header="SKU" Binding="{Binding SKU}" Width="100" />
+                            <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="120" />
+                            <DataGridTextColumn Header="Rate" Binding="{Binding Rate, StringFormat=C}" Width="100" />
+                            <DataGridTextColumn Header="Stock" Binding="{Binding StockQty}" Width="80" />
+                            <DataGridTextColumn Header="Min Qty" Binding="{Binding MinStockQty}" Width="80" />
+                            <DataGridTemplateColumn Header="Status" Width="100">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding IsLowStock, Converter={StaticResource BoolToTextConverter}, ConverterParameter=Low Stock;OK}"
+                                                   Foreground="{Binding IsLowStock, Converter={StaticResource BoolToColorConverter}}" />
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                    <!-- STK-07: recent adjustment history -->
+                    <StackPanel DockPanel.Dock="Bottom" Margin="0,15,0,0">
+                        <TextBlock Text="Recent Adjustments" Style="{StaticResource SubHeadingTextBlock}" Margin="0,0,0,8" />
+                        <DataGrid ItemsSource="{Binding AdjustmentHistory}" Style="{StaticResource DataGridStyle}"
+                                  AutoGenerateColumns="False" IsReadOnly="True" MaxHeight="200">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Date" Binding="{Binding Date, StringFormat=dd-MMM-yyyy}" Width="100" />
+                                <DataGridTextColumn Header="Product" Binding="{Binding ProductName}" Width="*" />
+                                <DataGridTextColumn Header="Change" Binding="{Binding QuantityChange, StringFormat=+0;-0}" Width="70" />
+                                <DataGridTextColumn Header="Reason" Binding="{Binding Reason}" Width="90" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </StackPanel>
+                </DockPanel>
+            </Border>
+
+            <!-- Adjustment Form -->
+            <Border Grid.Column="1" Style="{StaticResource CardBorder}" MaxWidth="400">
+                <ScrollViewer>
+                    <StackPanel Margin="20">
+                        <TextBlock Text="Adjust Stock" Style="{StaticResource SubHeadingTextBlock}" />
+
+                        <TextBlock Text="Tip: use negative quantities for Damage / Loss / Expiry, positive for Found / Opening."
+                                   Foreground="{StaticResource TextSecondaryBrush}" FontSize="11"
+                                   TextWrapping="Wrap" Margin="0,0,0,10" />
+
+                        <TextBlock Text="Product" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,4" />
+                        <ComboBox ItemsSource="{Binding Products}" DisplayMemberPath="Name"
+                                  SelectedItem="{Binding SelectedProduct}"
+                                  Style="{StaticResource BaseComboBox}" />
+
+                        <TextBlock Text="Adjustment Qty" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,10,0,4" />
+                        <TextBox Text="{Binding AdjustmentQty, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource BaseTextBox}" />
+
+                        <TextBlock Text="Reason" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,10,0,4" />
+                        <ComboBox ItemsSource="{Binding AdjustmentReasons}" SelectedItem="{Binding AdjustmentReason}"
+                                  Style="{StaticResource BaseComboBox}" />
+
+                        <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource ErrorBrush}"
+                                   FontSize="12" Margin="0,15,0,0" TextWrapping="Wrap" />
+
+                        <TextBlock Text="{Binding SuccessMessage}" Foreground="{StaticResource SuccessBrush}"
+                                   FontSize="12" Margin="0,5,0,0" TextWrapping="Wrap" />
+
+                        <Button Content="Adjust Stock" Command="{Binding AdjustStockCommand}"
+                                Style="{StaticResource SuccessButton}" HorizontalAlignment="Stretch" Margin="0,15,0,0" />
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

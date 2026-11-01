@@ -1,0 +1,103 @@
+<UserControl x:Class="RetailBillingApp.Views.StockPolicyView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             d:DesignHeight="640" d:DesignWidth="1100">
+    <Grid Background="{StaticResource BackgroundBrush}" Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,20">
+            <TextBlock Text="Stock Policy" Style="{StaticResource HeadingTextBlock}" />
+            <TextBlock Text="How the app treats a movement that would take a product below zero — applied by billing, adjustments, stocktakes and transfers"
+                       Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" Margin="0,5,0,0" />
+        </StackPanel>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" MinWidth="380" />
+                <ColumnDefinition Width="20" />
+                <ColumnDefinition Width="1.1*" MinWidth="360" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Policy editor -->
+            <Border Grid.Column="0" Style="{StaticResource CardBorder}" VerticalAlignment="Top">
+                <StackPanel Margin="15">
+                    <TextBlock Text="Negative Stock" Style="{StaticResource SubHeadingTextBlock}" Margin="0,0,0,12" />
+
+                    <TextBlock Text="Policy" FontSize="12" Margin="0,0,0,4" />
+                    <ComboBox ItemsSource="{Binding Modes}"
+                              SelectedItem="{Binding SelectedMode}"
+                              Style="{StaticResource BaseComboBox}"
+                              HorizontalAlignment="Left" MinWidth="200" />
+
+                    <Border Background="{StaticResource SurfaceBrush}" CornerRadius="4" Padding="12" Margin="0,14,0,0">
+                        <TextBlock Text="{Binding ModeDescription}"
+                                   TextWrapping="Wrap" FontSize="12"
+                                   Foreground="{StaticResource TextSecondaryBrush}" />
+                    </Border>
+
+                    <TextBlock Margin="0,14,0,0" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}">
+                        <Run Text="Last change: " /><Run Text="{Binding LastChangedBy, Mode=OneWay}" /><Run Text=" on " /><Run Text="{Binding LastChangedAt, Mode=OneWay, StringFormat=dd-MMM-yyyy HH:mm}" />
+                    </TextBlock>
+
+                    <Button Content="Save Policy" Command="{Binding SavePolicyCommand}"
+                            Style="{StaticResource PrimaryButton}"
+                            IsEnabled="{Binding IsDirty}"
+                            HorizontalAlignment="Left" MinWidth="140" Margin="0,18,0,0" />
+                </StackPanel>
+            </Border>
+
+            <!-- Products already below zero -->
+            <Border Grid.Column="2" Style="{StaticResource CardBorder}">
+                <Grid Margin="15">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0" Style="{StaticResource SubHeadingTextBlock}" Margin="0,0,0,10">
+                        <Run Text="Below Zero (" /><Run Text="{Binding NegativeStockProducts.Count, Mode=OneWay}" /><Run Text=")" />
+                    </TextBlock>
+
+                    <Grid Grid.Row="1">
+                        <DataGrid ItemsSource="{Binding NegativeStockProducts}"
+                                  Style="{StaticResource DataGridStyle}"
+                                  AutoGenerateColumns="False" IsReadOnly="True">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Product" Binding="{Binding Name}" Width="*" />
+                                <DataGridTextColumn Header="SKU" Binding="{Binding SKU}" Width="140" />
+                                <DataGridTextColumn Header="On Hand" Binding="{Binding StockQty}" Width="100" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+
+                        <TextBlock Text="No product is below zero under the current policy."
+                                   Foreground="{StaticResource TextSecondaryBrush}" FontSize="12"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding NegativeStockProducts.Count}" Value="0">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </Grid>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- Messages -->
+        <TextBlock Grid.Row="2" Text="{Binding StatusMessage}" Foreground="{StaticResource SuccessBrush}"
+                   FontSize="12" TextWrapping="Wrap" Margin="0,10,0,0" />
+    </Grid>
+</UserControl>

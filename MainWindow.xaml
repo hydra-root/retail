@@ -1,0 +1,249 @@
+<Window x:Class="RetailBillingApp.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:RetailBillingApp"
+        mc:Ignorable="d"
+        Title="Retail Billing &amp; Inventory Management System"
+        Width="1280"
+        Height="800"
+        MinWidth="1000"
+        MinHeight="600"
+        WindowStartupLocation="CenterScreen">
+
+    <Window.Resources>
+
+        <!-- ===== UI-01: horizontal category bar, submenu on hover =====
+             Top-level items get a flat dark header whose only job is to open the popup on
+             hover, so the whole nav fits in one row instead of a 54-deep scrolling sidebar. -->
+        <Style x:Key="TopLevelMenuItemStyle" TargetType="MenuItem">
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Padding" Value="15,0" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="MenuItem">
+                        <Border x:Name="HeaderBorder"
+                                Background="{TemplateBinding Background}"
+                                Padding="{TemplateBinding Padding}">
+                            <Grid>
+                                <ContentPresenter ContentSource="Header"
+                                                  RecognizesAccessKey="True"
+                                                  VerticalAlignment="Center" />
+                                <Popup x:Name="PART_Popup"
+                                       Placement="Bottom"
+                                       VerticalOffset="1"
+                                       IsOpen="{TemplateBinding IsSubmenuOpen}"
+                                       AllowsTransparency="True"
+                                       Focusable="False"
+                                       PopupAnimation="Fade">
+                                    <Border Background="{StaticResource SurfaceBrush}"
+                                            BorderBrush="{StaticResource BorderBrush}"
+                                            BorderThickness="1"
+                                            Padding="0,4">
+                                        <ScrollViewer MaxHeight="620"
+                                                      VerticalScrollBarVisibility="Auto"
+                                                      HorizontalScrollBarVisibility="Disabled">
+                                            <StackPanel IsItemsHost="True"
+                                                        MinWidth="216"
+                                                        KeyboardNavigation.DirectionalNavigation="Cycle" />
+                                        </ScrollViewer>
+                                    </Border>
+                                </Popup>
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsHighlighted" Value="True">
+                                <Setter TargetName="HeaderBorder" Property="Background"
+                                        Value="{StaticResource PrimaryBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsSubmenuOpen" Value="True">
+                                <Setter TargetName="HeaderBorder" Property="Background"
+                                        Value="{StaticResource PrimaryBrush}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Submenu rows: light popup, so dark text and a roomy hit target. -->
+        <Style TargetType="MenuItem">
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Padding" Value="10,7" />
+        </Style>
+
+        <Style x:Key="MenuBarTextBlockStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+
+        <Style x:Key="MenuLinkButtonStyle" TargetType="Button">
+            <Setter Property="Foreground" Value="{StaticResource AccentBrush}" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Padding" Value="14,0" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="LinkBorder" Background="{TemplateBinding Background}"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter VerticalAlignment="Center"
+                                              HorizontalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="LinkBorder" Property="Background"
+                                        Value="{StaticResource PrimaryBrush}" />
+                                <Setter Property="Foreground" Value="White" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid Background="{StaticResource BackgroundBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Category bar -->
+        <Border Grid.Row="0" Background="{StaticResource PrimaryDarkBrush}">
+            <DockPanel LastChildFill="True" Height="42">
+
+                <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" Margin="18,0,10,0">
+                    <TextBlock Text="RETAIL" Style="{StaticResource MenuBarTextBlockStyle}" />
+                    <TextBlock Text="BILLING" Style="{StaticResource MenuBarTextBlockStyle}"
+                               Foreground="{StaticResource AccentBrush}" Margin="6,0,0,0" />
+                </StackPanel>
+
+                <Button DockPanel.Dock="Right" Content="Logout"
+                        Command="{Binding LogoutCommand}"
+                        Style="{StaticResource MenuLinkButtonStyle}"
+                        Visibility="{Binding IsNavVisible, Converter={StaticResource BoolToVisibilityConverter}}" />
+
+                <Menu Background="Transparent" Foreground="White" VerticalAlignment="Stretch"
+                      Panel.ZIndex="1"
+                      Visibility="{Binding IsNavVisible, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <MenuItem Header="_Till" Style="{StaticResource TopLevelMenuItemStyle}">
+                        <MenuItem Header="Dashboard" Command="{Binding ShowDashboardCommand}" />
+                        <MenuItem Header="Quick POS" Command="{Binding ShowQuickPosCommand}" />
+                        <MenuItem Header="Invoices" Command="{Binding ShowInvoicesCommand}" />
+                        <MenuItem Header="Credit / Debit Notes" Command="{Binding ShowCreditNotesCommand}" />
+                        <MenuItem Header="Sales Tracking" Command="{Binding ShowSalesCommand}" />
+                    </MenuItem>
+
+                    <MenuItem Header="_Inventory" Style="{StaticResource TopLevelMenuItemStyle}">
+                        <MenuItem Header="Products" Command="{Binding ShowProductsCommand}" />
+                        <MenuItem Header="Categories &amp; Units" Command="{Binding ShowCatalogCommand}" />
+                        <MenuItem Header="Batch Tracking" Command="{Binding ShowBatchesCommand}" />
+                        <MenuItem Header="Stock Alerts" Command="{Binding ShowStockAlertsCommand}" />
+                        <Separator />
+                        <MenuItem Header="Stock Adjustment" Command="{Binding ShowStockAdjustmentCommand}" />
+                        <MenuItem Header="Stock Transfer" Command="{Binding ShowStockTransferCommand}" />
+                        <MenuItem Header="Physical Stock Take" Command="{Binding ShowStockTakeCommand}" />
+                        <MenuItem Header="Stock Valuation" Command="{Binding ShowStockValuationCommand}" />
+                        <Separator />
+                        <MenuItem Header="Stock Policy" Command="{Binding ShowStockPolicyCommand}" />
+                        <MenuItem Header="Bulk Import / Export" Command="{Binding ShowBulkImportCommand}" />
+                    </MenuItem>
+
+                    <MenuItem Header="_Parties" Style="{StaticResource TopLevelMenuItemStyle}">
+                        <MenuItem Header="Customers" Command="{Binding ShowCustomersCommand}" />
+                        <MenuItem Header="Suppliers" Command="{Binding ShowSuppliersCommand}" />
+                        <MenuItem Header="Customer Ledger &amp; Statement" Command="{Binding ShowCustomerLedgerCommand}" />
+                        <MenuItem Header="Party-wise Pricing" Command="{Binding ShowPriceListCommand}" />
+                    </MenuItem>
+
+                    <MenuItem Header="Mo_ney" Style="{StaticResource TopLevelMenuItemStyle}">
+                        <MenuItem Header="Purchases" Command="{Binding ShowPurchasesCommand}" />
+                        <MenuItem Header="Payments &amp; Receipts" Command="{Binding ShowPaymentsCommand}" />
+                        <MenuItem Header="Cash &amp; Bank Book" Command="{Binding ShowCashBookCommand}" />
+                        <MenuItem Header="Bank Reconciliation" Command="{Binding ShowBankReconciliationCommand}" />
+                        <MenuItem Header="Cheque Register" Command="{Binding ShowChequeRegisterCommand}" />
+                        <Separator />
+                        <MenuItem Header="Credit Sales" Command="{Binding ShowCreditSalesCommand}" />
+                        <MenuItem Header="Credit Analysis" Command="{Binding ShowCreditAnalysisCommand}" />
+                        <MenuItem Header="Payment Reminders" Command="{Binding ShowRemindersCommand}" />
+                        <Separator />
+                        <MenuItem Header="Receivables" Command="{Binding ShowReceivablesCommand}" />
+                        <MenuItem Header="Payables" Command="{Binding ShowPayablesCommand}" />
+                    </MenuItem>
+
+                    <MenuItem Header="_Books" Style="{StaticResource TopLevelMenuItemStyle}">
+                        <MenuItem Header="Chart of Accounts" Command="{Binding ShowChartOfAccountsCommand}" />
+                        <MenuItem Header="Journal" Command="{Binding ShowJournalCommand}" />
+                        <MenuItem Header="Day Book &amp; Ledger" Command="{Binding ShowLedgerBookCommand}" />
+                        <MenuItem Header="Expenses" Command="{Binding ShowExpenseCommand}" />
+                        <Separator />
+                        <MenuItem Header="Opening Balances" Command="{Binding ShowOpeningBalanceCommand}" />
+                        <MenuItem Header="Financial Year" Command="{Binding ShowFinancialYearCommand}" />
+                        <MenuItem Header="Number Series" Command="{Binding ShowNumberSeriesCommand}" />
+                        <Separator />
+                        <MenuItem Header="Contacts" Command="{Binding ShowContactsCommand}" />
+                    </MenuItem>
+
+                    <MenuItem Header="_Reports" Style="{StaticResource TopLevelMenuItemStyle}">
+                        <MenuItem Header="Reports Home" Command="{Binding ShowReportsCommand}" />
+                        <MenuItem Header="Sales Register" Command="{Binding ShowSalesRegisterCommand}" />
+                        <MenuItem Header="GST Reports" Command="{Binding ShowGstReportCommand}" />
+                        <Separator />
+                        <MenuItem Header="P&amp;L Report" Command="{Binding ShowPLReportCommand}" />
+                        <MenuItem Header="Balance Sheet" Command="{Binding ShowBalanceSheetCommand}" />
+                        <MenuItem Header="Cash Flow" Command="{Binding ShowCashFlowCommand}" />
+                        <MenuItem Header="Stock Audit" Command="{Binding ShowStockAuditReportCommand}" />
+                        <MenuItem Header="Item-wise Profit" Command="{Binding ShowItemProfitCommand}" />
+                        <Separator />
+                        <MenuItem Header="Store Comparison" Command="{Binding ShowStoreComparisonCommand}" />
+                        <MenuItem Header="Store Pricing" Command="{Binding ShowStorePricingCommand}" />
+                        <MenuItem Header="Audit Trail" Command="{Binding ShowAuditTrailCommand}" />
+                        <MenuItem Header="Tally Export" Command="{Binding ShowTallyExportCommand}" />
+                    </MenuItem>
+
+                    <MenuItem Header="_Admin" Style="{StaticResource TopLevelMenuItemStyle}">
+                        <MenuItem Header="Stores" Command="{Binding ShowStoresCommand}"
+                                  Visibility="{Binding IsAdmin, Converter={StaticResource BoolToVisibilityConverter}}" />
+                        <MenuItem Header="Multi-Store Dashboard" Command="{Binding ShowMultiStoreCommand}"
+                                  Visibility="{Binding IsAdmin, Converter={StaticResource BoolToVisibilityConverter}}" />
+                        <MenuItem Header="Users" Command="{Binding ShowUsersCommand}"
+                                  Visibility="{Binding IsAdmin, Converter={StaticResource BoolToVisibilityConverter}}" />
+                        <MenuItem Header="Roles" Command="{Binding ShowRolesCommand}" />
+                        <MenuItem Header="Permissions Matrix" Command="{Binding ShowPermissionsCommand}" />
+                        <MenuItem Header="Activity Log" Command="{Binding ShowActivityLogCommand}"
+                                  Visibility="{Binding IsAdmin, Converter={StaticResource BoolToVisibilityConverter}}" />
+                        <MenuItem Header="Critical Change Passcode" Command="{Binding ShowCriticalChangePasscodeCommand}"
+                                  Visibility="{Binding IsAdmin, Converter={StaticResource BoolToVisibilityConverter}}" />
+                        <Separator />
+                        <MenuItem Header="Settings" Command="{Binding ShowSettingsCommand}" />
+                        <MenuItem Header="Invoice Templates" Command="{Binding ShowTemplateSettingsCommand}" />
+                        <MenuItem Header="Messaging Center" Command="{Binding ShowMessagingCommand}" />
+                        <Separator />
+                        <MenuItem Header="Backup Schedule" Command="{Binding ShowBackupScheduleCommand}"
+                                  Visibility="{Binding IsAdmin, Converter={StaticResource BoolToVisibilityConverter}}" />
+                        <MenuItem Header="Offline / Sync Queue" Command="{Binding ShowOfflineSyncCommand}" />
+                        <MenuItem Header="Sync Center" Command="{Binding ShowSyncCenterCommand}"
+                                  Visibility="{Binding IsAdmin, Converter={StaticResource BoolToVisibilityConverter}}" />
+                        <MenuItem Header="Integrity Check" Command="{Binding ShowIntegrityCommand}" />
+                        <MenuItem Header="Privacy &amp; Compliance" Command="{Binding ShowPrivacyCommand}" />
+                    </MenuItem>
+                </Menu>
+            </DockPanel>
+        </Border>
+
+        <!-- Main Content -->
+        <Border Grid.Row="1" Background="{StaticResource BackgroundBrush}">
+            <ContentControl Content="{Binding CurrentViewModel}" Margin="20" />
+        </Border>
+    </Grid>
+</Window>

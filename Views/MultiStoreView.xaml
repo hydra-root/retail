@@ -1,0 +1,79 @@
+<UserControl x:Class="RetailBillingApp.Views.MultiStoreView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             d:DesignHeight="600" d:DesignWidth="1000">
+    <Grid Background="{StaticResource BackgroundBrush}" Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Header + filter -->
+        <DockPanel Grid.Row="0" Margin="0,0,0,20">
+            <TextBlock Text="Multi-Store Dashboard" Style="{StaticResource HeadingTextBlock}" />
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                <TextBlock Text="Store:" VerticalAlignment="Center" Margin="0,0,8,0"
+                           Foreground="{StaticResource TextSecondaryBrush}" />
+                <ComboBox ItemsSource="{Binding Stores, Mode=OneWay}"
+                          SelectedItem="{Binding SelectedStore}"
+                          DisplayMemberPath="Name"
+                          Width="220"
+                          Style="{StaticResource BaseComboBox}" />
+                <Button Content="Clear Filter" Command="{Binding ClearFilterCommand}"
+                        Style="{StaticResource SecondaryButton}" Margin="10,0,0,0" Width="110" />
+            </StackPanel>
+        </DockPanel>
+
+        <!-- KPI Cards -->
+        <UniformGrid Grid.Row="1" Columns="4">
+            <Border Style="{StaticResource CardBorder}" Margin="0,0,10,0">
+                <StackPanel>
+                    <TextBlock Text="Total Sales" Style="{StaticResource SubHeadingTextBlock}" />
+                    <TextBlock Text="{Binding TotalSales, StringFormat=₹{0:N2}}" FontSize="22" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}" />
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource CardBorder}" Margin="0,0,10,0">
+                <StackPanel>
+                    <TextBlock Text="Total Invoices" Style="{StaticResource SubHeadingTextBlock}" />
+                    <TextBlock Text="{Binding TotalInvoices}" FontSize="22" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}" />
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource CardBorder}" Margin="0,0,10,0">
+                <StackPanel>
+                    <TextBlock Text="Stores" Style="{StaticResource SubHeadingTextBlock}" />
+                    <TextBlock Text="{Binding StoreCount}" FontSize="22" FontWeight="Bold" Foreground="{StaticResource SuccessBrush}" />
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource CardBorder}">
+                <StackPanel>
+                    <TextBlock Text="Store Filter" Style="{StaticResource SubHeadingTextBlock}" />
+                    <TextBlock Text="{Binding SelectedStore.Name, TargetNullValue=All stores}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" />
+                </StackPanel>
+            </Border>
+        </UniformGrid>
+
+        <!-- Store comparison -->
+        <Border Grid.Row="2" Margin="0,15,0,15">
+            <TextBlock Text="Store-wise Sales Comparison" Style="{StaticResource SubHeadingTextBlock}" />
+        </Border>
+
+        <DataGrid Grid.Row="3" ItemsSource="{Binding StoreSales}"
+                  Style="{StaticResource DataGridStyle}" AutoGenerateColumns="False" IsReadOnly="True">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Store" Binding="{Binding StoreName}" Width="*" />
+                <DataGridTextColumn Header="Invoices" Binding="{Binding InvoiceCount}" Width="100" />
+                <DataGridTextColumn Header="Total Sales" Binding="{Binding TotalSales, StringFormat=₹{0:N2}}" Width="160" />
+                <DataGridTextColumn Header="Tax Collected" Binding="{Binding TotalTax, StringFormat=₹{0:N2}}" Width="160" />
+                <DataGridTextColumn Header="Last Invoice" Binding="{Binding LastInvoiceDate, StringFormat=d}" Width="130" />
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <TextBlock Grid.Row="3" Text="{Binding ErrorMessage}" Foreground="{StaticResource ErrorBrush}"
+                   VerticalAlignment="Bottom" FontSize="12" />
+    </Grid>
+</UserControl>

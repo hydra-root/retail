@@ -1,0 +1,220 @@
+<UserControl x:Class="RetailBillingApp.Views.ReminderView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             d:DesignHeight="720" d:DesignWidth="1240">
+    <Grid Background="{StaticResource BackgroundBrush}" Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,20">
+            <TextBlock Text="Automatic Payment Reminders" Style="{StaticResource HeadingTextBlock}" />
+            <TextBlock Text="Notices built from the open receivables and handed to the Messaging Center — first notice before the due date, second notice after it"
+                       Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" Margin="0,5,0,0" />
+        </StackPanel>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="430" />
+                <ColumnDefinition Width="20" />
+                <ColumnDefinition Width="*" MinWidth="520" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Rule editor -->
+            <Border Grid.Column="0" Style="{StaticResource CardBorder}" VerticalAlignment="Top">
+                <StackPanel Margin="15">
+                    <TextBlock Text="Reminder Rules" Style="{StaticResource SubHeadingTextBlock}" Margin="0,0,0,12" />
+
+                    <CheckBox Content="Enable automatic reminders" IsChecked="{Binding IsEnabled}" Margin="0,0,0,14" />
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="12" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="First notice (days before due)" FontWeight="SemiBold" FontSize="11"
+                                       Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" />
+                            <TextBox Text="{Binding FirstNoticeDaysBeforeDue, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource BaseTextBox}" Margin="0,4,0,0" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="Second notice (days after due, 0 = off)" FontWeight="SemiBold" FontSize="11"
+                                       Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" />
+                            <TextBox Text="{Binding SecondNoticeDaysAfterDue, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource BaseTextBox}" Margin="0,4,0,0" />
+                        </StackPanel>
+                    </Grid>
+
+                    <TextBlock Text="Channel" FontWeight="SemiBold" FontSize="11"
+                               Foreground="{StaticResource TextSecondaryBrush}" Margin="0,10,0,4" />
+                    <ComboBox ItemsSource="{Binding Channels}" SelectedItem="{Binding SelectedChannel}"
+                              Style="{StaticResource BaseComboBox}" Margin="0" />
+
+                    <TextBlock Text="Max reminders per customer per day" FontWeight="SemiBold" FontSize="11"
+                               Foreground="{StaticResource TextSecondaryBrush}" Margin="0,10,0,4" />
+                    <TextBox Text="{Binding MaxPerCustomerPerDay, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource BaseTextBox}" Margin="0" MinWidth="120" HorizontalAlignment="Left" />
+
+                    <CheckBox Content="Run automatically every day (scheduler tick)"
+                              IsChecked="{Binding IsAutoRunEnabled}" Margin="0,14,0,0" />
+
+                    <Grid Margin="0,6,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="12" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="Run at hour" FontWeight="SemiBold" FontSize="11"
+                                       Foreground="{StaticResource TextSecondaryBrush}" />
+                            <ComboBox ItemsSource="{Binding HourOptions}" SelectedItem="{Binding AutoRunHour}"
+                                      Style="{StaticResource BaseComboBox}" Margin="0,4,0,0" MinWidth="90"
+                                      HorizontalAlignment="Left" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="Run at minute" FontWeight="SemiBold" FontSize="11"
+                                       Foreground="{StaticResource TextSecondaryBrush}" />
+                            <ComboBox ItemsSource="{Binding MinuteOptions}" SelectedItem="{Binding AutoRunMinute}"
+                                      Style="{StaticResource BaseComboBox}" Margin="0,4,0,0" MinWidth="90"
+                                      HorizontalAlignment="Left" />
+                        </StackPanel>
+                    </Grid>
+
+                    <TextBlock Text="{Binding LastAutoRunText}" TextWrapping="Wrap" FontSize="12"
+                               Foreground="{StaticResource TextSecondaryBrush}" Margin="0,10,0,0" />
+
+                    <Border Background="{StaticResource SurfaceBrush}" CornerRadius="4" Padding="12" Margin="0,14,0,0">
+                        <TextBlock Text="{Binding RuleSummary}"
+                                   TextWrapping="Wrap" FontSize="12"
+                                   Foreground="{StaticResource TextSecondaryBrush}" />
+                    </Border>
+
+                    <TextBlock Text="Message template" FontWeight="SemiBold" FontSize="11"
+                               Foreground="{StaticResource TextSecondaryBrush}" Margin="0,14,0,4" />
+                    <TextBox Text="{Binding MessageTemplate, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource BaseTextBox}" Margin="0"
+                             AcceptsReturn="True" TextWrapping="Wrap" MaxLength="500"
+                             Height="72" VerticalScrollBarVisibility="Auto" />
+                    <TextBlock Text="{Binding PlaceholderHint}" TextWrapping="Wrap" FontSize="11"
+                               Foreground="{StaticResource TextSecondaryBrush}" Margin="4,6,0,0" />
+
+                    <TextBlock Text="Live preview (first queued invoice)" FontWeight="SemiBold" FontSize="11"
+                               Foreground="{StaticResource TextSecondaryBrush}" Margin="0,14,0,4" />
+                    <Border Background="{StaticResource BackgroundBrush}" BorderBrush="{StaticResource BorderBrush}"
+                            BorderThickness="1" CornerRadius="4" Padding="12">
+                        <TextBlock Text="{Binding PreviewMessage}" TextWrapping="Wrap" FontSize="12" />
+                    </Border>
+
+                    <TextBlock Margin="0,14,0,0" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}">
+                        <Run Text="Last run: " /><Run Text="{Binding LastRunText, Mode=OneWay}" />
+                    </TextBlock>
+
+                    <Button Content="Save Rules" Command="{Binding SaveSettingsCommand}"
+                            Style="{StaticResource PrimaryButton}"
+                            HorizontalAlignment="Left" MinWidth="140" Margin="0,16,0,0"
+                            IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBoolConverter}}" />
+                </StackPanel>
+            </Border>
+
+            <!-- Candidate queue -->
+            <Border Grid.Column="2" Style="{StaticResource CardBorder}">
+                <Grid Margin="15">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0" Style="{StaticResource SubHeadingTextBlock}" Margin="0,0,0,10">
+                        <Run Text="Reminder Queue (" /><Run Text="{Binding Candidates.Count, Mode=OneWay}" /><Run Text=" open invoices)" />
+                    </TextBlock>
+
+                    <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,10">
+                        <TextBlock Text="Filter:" VerticalAlignment="Center" Margin="0,0,6,0" />
+                        <ComboBox ItemsSource="{Binding Filters}" SelectedItem="{Binding SelectedFilter}"
+                                  Style="{StaticResource BaseComboBox}" MinWidth="150" Margin="0" />
+                        <TextBlock Text="Search:" VerticalAlignment="Center" Margin="16,0,6,0" />
+                        <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource BaseTextBox}" MinWidth="210" Margin="0" />
+                        <Button Content="Refresh" Command="{Binding RefreshCommand}"
+                                Style="{StaticResource SecondaryButton}" Margin="12,0,0,0" />
+                    </StackPanel>
+
+                    <DataGrid Grid.Row="2" ItemsSource="{Binding FilteredCandidates}"
+                              Style="{StaticResource DataGridStyle}"
+                              AutoGenerateColumns="False" IsReadOnly="True">
+                        <DataGrid.Columns>
+                            <DataGridTemplateColumn Header="Send" Width="48">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <CheckBox HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                  IsEnabled="{Binding CanSelect}"
+                                                  IsChecked="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTextColumn Header="Stage" Binding="{Binding StageLabel}" Width="150" />
+                            <DataGridTextColumn Header="Customer" Binding="{Binding CustomerName}" Width="*" MinWidth="130" />
+                            <DataGridTextColumn Header="Invoice" Binding="{Binding InvoiceNumber}" Width="110" />
+                            <DataGridTextColumn Header="Due Date" Binding="{Binding DueDateText}" Width="100" />
+                            <DataGridTextColumn Header="Days" Binding="{Binding DaysText}" Width="110" />
+                            <DataGridTextColumn Header="Outstanding" Binding="{Binding Outstanding, StringFormat=₹{0:N2}}" Width="110" />
+                            <DataGridTextColumn Header="Recipient" Binding="{Binding Recipient}" Width="130" />
+                            <DataGridTemplateColumn Header="Message" Width="260">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Message}" TextWrapping="Wrap" FontSize="11"
+                                                   Margin="4,2" VerticalAlignment="Center" />
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTemplateColumn Header="Why" Width="280">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Reason}" TextWrapping="Wrap" FontSize="11"
+                                                   Margin="4,2" VerticalAlignment="Center"
+                                                   Foreground="{StaticResource TextSecondaryBrush}" />
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                    <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,14,0,0">
+                        <Button Content="Send Selected" Command="{Binding SendSelectedCommand}"
+                                Style="{StaticResource PrimaryButton}" MinWidth="150"
+                                IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBoolConverter}}" />
+                        <Button Content="Send All Queued" Command="{Binding SendAllQueuedCommand}"
+                                Style="{StaticResource SuccessButton}" MinWidth="160" Margin="10,0,0,0"
+                                IsEnabled="{Binding IsBusy, Converter={StaticResource InverseBoolConverter}}" />
+                        <TextBlock VerticalAlignment="Center" Margin="16,0,0,0" FontSize="12"
+                                   Foreground="{StaticResource TextSecondaryBrush}">
+                            <Run Text="Queued now: " /><Run Text="{Binding QueuedCount, Mode=OneWay}" />
+                        </TextBlock>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- Messages -->
+        <StackPanel Grid.Row="2" Margin="0,10,0,0">
+            <TextBlock Text="{Binding SuccessMessage}" Foreground="{StaticResource SuccessBrush}"
+                       FontSize="12" TextWrapping="Wrap" />
+            <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource ErrorBrush}"
+                       FontSize="12" TextWrapping="Wrap" />
+        </StackPanel>
+    </Grid>
+</UserControl>

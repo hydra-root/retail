@@ -1,0 +1,95 @@
+<UserControl x:Class="RetailBillingApp.Views.SalesView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             d:DesignHeight="600" d:DesignWidth="1000">
+    <Grid Background="{StaticResource BackgroundBrush}" Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,20">
+            <TextBlock Text="Sales &amp; Payments" Style="{StaticResource HeadingTextBlock}" />
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="20,0,0,0">
+                <TextBlock Text="Total Outstanding:" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,10,0" />
+                <TextBlock Text="{Binding TotalOutstanding, StringFormat=C}" FontSize="18" FontWeight="Bold"
+                           Foreground="{StaticResource WarningBrush}" VerticalAlignment="Center" />
+            </StackPanel>
+            <Button Content="+ Record Sale" Command="{Binding RecordSaleCommand}"
+                    Style="{StaticResource SuccessButton}" HorizontalAlignment="Right" Margin="20,0,0,0" Width="140" />
+        </StackPanel>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="3*" />
+                <ColumnDefinition Width="2*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Sales List -->
+            <Border Grid.Column="0" Style="{StaticResource CardBorder}">
+                <DockPanel>
+                    <StackPanel DockPanel.Dock="Top" Margin="0,0,0,15">
+                        <TextBlock Text="All Sales" Style="{StaticResource SubHeadingTextBlock}" />
+                        <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource BaseTextBox}" Width="300" />
+                    </StackPanel>
+
+                    <DataGrid ItemsSource="{Binding FilteredSales}" SelectedItem="{Binding SelectedSale}"
+                              Style="{StaticResource DataGridStyle}" AutoGenerateColumns="False">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Invoice #" Binding="{Binding InvoiceNumber}" Width="*" />
+                            <DataGridTextColumn Header="Customer" Binding="{Binding CustomerName}" Width="150" />
+                            <DataGridTextColumn Header="Date" Binding="{Binding SaleDate, StringFormat=yyyy-MM-dd}" Width="100" />
+                            <DataGridTextColumn Header="Amount" Binding="{Binding Amount, StringFormat=C}" Width="100" />
+                            <DataGridTextColumn Header="Paid" Binding="{Binding PaidAmount, StringFormat=C}" Width="100" />
+                            <DataGridTextColumn Header="Outstanding" Binding="{Binding OutstandingAmount, StringFormat=C}" Width="120" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                    <Button Content="Record Payment" Command="{Binding RecordPaymentCommand}"
+                            Style="{StaticResource PrimaryButton}" DockPanel.Dock="Bottom"
+                            HorizontalAlignment="Right" Margin="0,15,0,0" Width="140" />
+                </DockPanel>
+            </Border>
+
+            <!-- Record Sale Form -->
+            <Border Grid.Column="1" Style="{StaticResource CardBorder}" MaxWidth="400">
+                <ScrollViewer>
+                    <StackPanel Margin="20">
+                        <TextBlock Text="Record Sale" Style="{StaticResource SubHeadingTextBlock}" />
+
+                        <TextBlock Text="Invoice Number" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,4" />
+                        <TextBox Text="{Binding NewInvoiceNumber, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource BaseTextBox}" />
+
+                        <TextBlock Text="Customer Name" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,4" />
+                        <TextBox Text="{Binding NewCustomerName, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource BaseTextBox}" />
+
+                        <TextBlock Text="Amount" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,4" />
+                        <TextBox Text="{Binding NewAmount, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource BaseTextBox}" />
+
+                        <TextBlock Text="Amount Paid" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,4" />
+                        <TextBox Text="{Binding NewPaidAmount, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource BaseTextBox}" />
+
+                        <TextBlock Text="Payment Mode" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,4" />
+                        <ComboBox SelectedItem="{Binding NewPaymentMode}" Style="{StaticResource BaseComboBox}">
+                            <ComboBoxItem Content="Cash" />
+                            <ComboBoxItem Content="Card" />
+                            <ComboBoxItem Content="UPI" />
+                            <ComboBoxItem Content="Credit" />
+                        </ComboBox>
+
+                        <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource ErrorBrush}"
+                                   FontSize="12" Margin="0,15,0,0" TextWrapping="Wrap" />
+
+                        <Button Content="Record Sale" Command="{Binding RecordSaleCommand}"
+                                Style="{StaticResource SuccessButton}" HorizontalAlignment="Stretch" Margin="0,15,0,0" />
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

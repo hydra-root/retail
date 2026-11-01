@@ -1,0 +1,320 @@
+<UserControl x:Class="RetailBillingApp.Views.ContactsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             d:DesignHeight="820" d:DesignWidth="1320">
+    <Grid Background="{StaticResource BackgroundBrush}" Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Header + toolbar -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,15">
+            <TextBlock Text="Contacts (address book)" Style="{StaticResource HeadingTextBlock}" />
+            <TextBlock Text="One book for every customer and supplier - search a person, see what they owe or what we owe them, hand them a vCard, or import a list from CSV. The book is read-only: it is derived from the Customers and Suppliers masters."
+                       Foreground="{StaticResource TextSecondaryBrush}" FontSize="11" TextWrapping="Wrap" Margin="0,5,0,0" />
+
+            <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                <TextBlock Text="Search name / mobile / GSTIN / email:" VerticalAlignment="Center" Margin="0,0,6,0" />
+                <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                         Style="{StaticResource BaseTextBox}" MinWidth="230" />
+                <TextBlock Text="Party:" VerticalAlignment="Center" Margin="15,0,6,0" />
+                <ComboBox ItemsSource="{Binding PartyTypes}" SelectedItem="{Binding SelectedPartyType}"
+                          Style="{StaticResource BaseComboBox}" MinWidth="120" />
+                <CheckBox Content="Data issues only" IsChecked="{Binding DataIssuesOnly}"
+                          VerticalAlignment="Center" Margin="15,0,0,0" />
+                <Button Content="Refresh" Command="{Binding RefreshCommand}"
+                        Style="{StaticResource SecondaryButton}" Margin="15,0,0,0"
+                        IsEnabled="{Binding IsLoading, Converter={StaticResource InverseBoolConverter}}" />
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                <Button Content="Export ticked as vCard" Command="{Binding ExportSelectedCommand}"
+                        Style="{StaticResource PrimaryButton}" MinWidth="170"
+                        IsEnabled="{Binding IsLoading, Converter={StaticResource InverseBoolConverter}}" />
+                <Button Content="Export all as vCard" Command="{Binding ExportAllCommand}"
+                        Style="{StaticResource SuccessButton}" MinWidth="160" Margin="10,0,0,0"
+                        IsEnabled="{Binding IsLoading, Converter={StaticResource InverseBoolConverter}}" />
+                <Button Content="Save vCard file as..." Command="{Binding SaveVCardAsCommand}"
+                        Style="{StaticResource SecondaryButton}" MinWidth="160" Margin="10,0,0,0"
+                        IsEnabled="{Binding IsLoading, Converter={StaticResource InverseBoolConverter}}" />
+                <TextBlock Text="A .vcf opens in an Android or iOS address book (Contacts - import/export)."
+                           VerticalAlignment="Center" Margin="15,0,0,0" FontSize="11"
+                           Foreground="{StaticResource TextSecondaryBrush}" />
+            </StackPanel>
+        </StackPanel>
+
+        <!-- KPI cards -->
+        <WrapPanel Grid.Row="1" Margin="0,0,0,15">
+            <Border Style="{StaticResource CardBorder}" Margin="0,0,10,10" MinWidth="170">
+                <StackPanel Margin="15">
+                    <TextBlock Text="Contacts" Style="{StaticResource SubHeadingTextBlock}" FontSize="11" />
+                    <TextBlock Text="{Binding TotalContacts}" FontSize="24" FontWeight="Bold" />
+                    <TextBlock Text="{Binding RowsMessage}" FontSize="10" TextWrapping="Wrap" MaxWidth="170"
+                               Foreground="{StaticResource TextSecondaryBrush}" />
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource CardBorder}" Margin="0,0,10,10" MinWidth="170">
+                <StackPanel Margin="15">
+                    <TextBlock Text="Customers" Style="{StaticResource SubHeadingTextBlock}" FontSize="11" />
+                    <TextBlock Text="{Binding CustomerCount}" FontSize="24" FontWeight="Bold" />
+                    <TextBlock FontSize="10" Foreground="{StaticResource TextSecondaryBrush}">
+                        <TextBlock.Text>
+                            <Binding Path="TotalReceivable" StringFormat="Receivable {0:C}" />
+                        </TextBlock.Text>
+                    </TextBlock>
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource CardBorder}" Margin="0,0,10,10" MinWidth="170">
+                <StackPanel Margin="15">
+                    <TextBlock Text="Suppliers" Style="{StaticResource SubHeadingTextBlock}" FontSize="11" />
+                    <TextBlock Text="{Binding SupplierCount}" FontSize="24" FontWeight="Bold" />
+                    <TextBlock FontSize="10" Foreground="{StaticResource TextSecondaryBrush}">
+                        <TextBlock.Text>
+                            <Binding Path="TotalPayable" StringFormat="Payable {0:C}" />
+                        </TextBlock.Text>
+                    </TextBlock>
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource CardBorder}" Margin="0,0,10,10" MinWidth="170">
+                <StackPanel Margin="15">
+                    <TextBlock Text="Missing mobile" Style="{StaticResource SubHeadingTextBlock}" FontSize="11" />
+                    <TextBlock Text="{Binding MissingPhoneCount}" FontSize="24" FontWeight="Bold"
+                               Foreground="{StaticResource ErrorBrush}" />
+                    <TextBlock Text="No WhatsApp or SMS possible" FontSize="10"
+                               Foreground="{StaticResource TextSecondaryBrush}" />
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource CardBorder}" Margin="0,0,10,10" MinWidth="170">
+                <StackPanel Margin="15">
+                    <TextBlock Text="Missing email" Style="{StaticResource SubHeadingTextBlock}" FontSize="11" />
+                    <TextBlock Text="{Binding MissingEmailCount}" FontSize="24" FontWeight="Bold"
+                               Foreground="{StaticResource WarningBrush}" />
+                    <TextBlock Text="No Email channel reachable" FontSize="10"
+                               Foreground="{StaticResource TextSecondaryBrush}" />
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource CardBorder}" Margin="0,0,10,10" MinWidth="170">
+                <StackPanel Margin="15">
+                    <TextBlock Text="Duplicate mobile" Style="{StaticResource SubHeadingTextBlock}" FontSize="11" />
+                    <TextBlock Text="{Binding DuplicatePhoneCount}" FontSize="24" FontWeight="Bold"
+                               Foreground="{StaticResource WarningBrush}" />
+                    <TextBlock Text="Same person entered twice, maybe once as a customer" FontSize="10"
+                               Foreground="{StaticResource TextSecondaryBrush}" />
+                </StackPanel>
+            </Border>
+        </WrapPanel>
+
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" MinWidth="620" />
+                <ColumnDefinition Width="15" />
+                <ColumnDefinition Width="400" />
+            </Grid.ColumnDefinitions>
+
+            <Grid Grid.Column="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <!-- Address book -->
+                <Border Grid.Row="0" Style="{StaticResource CardBorder}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Grid.Row="0" Text="{Binding RowsMessage}" FontSize="11"
+                                   Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,8"
+                                   TextWrapping="Wrap" />
+
+                        <DataGrid Grid.Row="1" ItemsSource="{Binding FilteredContacts}"
+                                  SelectedItem="{Binding SelectedContact}"
+                                  Style="{StaticResource DataGridStyle}"
+                                  AutoGenerateColumns="False" IsReadOnly="True"
+                                  Visibility="{Binding HasRows, Converter={StaticResource BoolToVisibilityConverter}}">
+                            <DataGrid.Columns>
+                                <DataGridTemplateColumn Header="" Width="34">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <CheckBox HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                      IsChecked="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTemplateColumn Header="Open" Width="70">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Button Content="Open" FontSize="11" Padding="6,2"
+                                                    Style="{StaticResource SecondaryButton}"
+                                                    Command="{Binding DataContext.OpenPartyRecordCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                    CommandParameter="{Binding}" />
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTemplateColumn Header="vCard" Width="70">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Button Content="vCard" FontSize="11" Padding="6,2"
+                                                    Style="{StaticResource PrimaryButton}"
+                                                    Command="{Binding DataContext.ExportVCardCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                    CommandParameter="{Binding}" />
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTextColumn Header="Party" Binding="{Binding PartyType}" Width="80" />
+                                <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*" MinWidth="160" />
+                                <DataGridTextColumn Header="Mobile" Binding="{Binding Phone}" Width="110" />
+                                <DataGridTextColumn Header="Email" Binding="{Binding Email}" Width="150" />
+                                <DataGridTextColumn Header="GSTIN" Binding="{Binding GSTIN}" Width="130" />
+                                <DataGridTextColumn Header="State" Binding="{Binding State}" Width="110" />
+                                <DataGridTextColumn Header="Group" Binding="{Binding Group}" Width="90" />
+                                <DataGridTextColumn Header="Status" Binding="{Binding ActiveLabel}" Width="70" />
+                                <DataGridTextColumn Header="Outstanding" Binding="{Binding Outstanding, StringFormat=C}" Width="110" />
+                                <DataGridTextColumn Header="Docs" Binding="{Binding DocumentCount}" Width="60" />
+                                <DataGridTextColumn Header="Last doc" Binding="{Binding LastDocumentDate, StringFormat=dd-MMM-yyyy}" Width="100" />
+                                <DataGridTemplateColumn Header="Data issues" Width="280">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding IssueText}" TextWrapping="Wrap" FontSize="11"
+                                                       Margin="4,2" VerticalAlignment="Center"
+                                                       Foreground="{StaticResource TextSecondaryBrush}" />
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+
+                        <!-- Honest empty state -->
+                        <TextBlock Grid.Row="1" Text="{Binding RowsMessage}" FontSize="13" TextWrapping="Wrap"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center" Margin="30"
+                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVisibilityConverter}}" />
+                    </Grid>
+                </Border>
+
+                <!-- CSV import preview (appears after Browse &amp; Preview) -->
+                <Border Grid.Row="1" Style="{StaticResource CardBorder}" Margin="0,15,0,0"
+                        Visibility="{Binding HasPreview, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <StackPanel Margin="15">
+                        <TextBlock Style="{StaticResource SubHeadingTextBlock}" Margin="0,0,0,6">
+                            <Run Text="Import preview (" /><Run Text="{Binding ImportReady, Mode=OneWay}" /><Run Text=" ready, " /><Run Text="{Binding ImportSkipped, Mode=OneWay}" /><Run Text=" skipped) - nothing is written until Commit Import" />
+                        </TextBlock>
+                        <DataGrid ItemsSource="{Binding PreviewRows}" Height="240"
+                                  Style="{StaticResource DataGridStyle}"
+                                  AutoGenerateColumns="False" IsReadOnly="True">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Row" Binding="{Binding Row}" Width="50" />
+                                <DataGridTextColumn Header="Party" Binding="{Binding Party}" Width="80" />
+                                <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="70" />
+                                <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*" MinWidth="140" />
+                                <DataGridTextColumn Header="Mobile" Binding="{Binding Phone}" Width="110" />
+                                <DataGridTextColumn Header="Email" Binding="{Binding Email}" Width="150" />
+                                <DataGridTextColumn Header="GSTIN" Binding="{Binding GSTIN}" Width="130" />
+                                <DataGridTextColumn Header="Other fields" Binding="{Binding Details}" Width="2*" MinWidth="180" />
+                                <DataGridTextColumn Header="Problem / note" Binding="{Binding Error}" Width="3*" MinWidth="220" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- Detail + import side panel -->
+            <ScrollViewer Grid.Column="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <StackPanel>
+                    <Border Style="{StaticResource CardBorder}" Margin="0,0,0,15"
+                            Visibility="{Binding HasSelection, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <StackPanel Margin="15">
+                            <TextBlock Text="{Binding SelectedContact.Name}" Style="{StaticResource HeadingTextBlock}"
+                                       FontSize="16" TextWrapping="Wrap" />
+                            <TextBlock Text="{Binding SelectedContact.PartyType}" Style="{StaticResource SubHeadingTextBlock}"
+                                       FontSize="11" Margin="0,2,0,10" />
+
+                            <TextBlock FontSize="12" TextWrapping="Wrap" Margin="0,0,0,6">
+                                <TextBlock.Text>
+                                    <Binding Path="SelectedContact.Outstanding" StringFormat="Outstanding {0:C}" />
+                                </TextBlock.Text>
+                            </TextBlock>
+
+                            <TextBlock Text="{Binding SelectedContact.TermsLabel}" FontSize="12" TextWrapping="Wrap" />
+                            <TextBlock Text="{Binding SelectedContact.DocumentsLabel}" FontSize="12" />
+                            <TextBlock Text="{Binding SelectedContact.LastDocumentLabel}" FontSize="12" />
+                            <TextBlock Text="{Binding SelectedContact.ChannelText}" FontSize="12" Margin="0,0,0,6" />
+                            <TextBlock Text="{Binding SelectedContact.Email}" FontSize="12" TextWrapping="Wrap" />
+                            <TextBlock Text="{Binding SelectedContact.Address}" FontSize="12" TextWrapping="Wrap" />
+                            <TextBlock FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"
+                                       TextWrapping="Wrap">
+                                <TextBlock.Text>
+                                    <Binding Path="SelectedContact.WhatsAppNumber" StringFormat="WhatsApp number used: {0}" />
+                                </TextBlock.Text>
+                            </TextBlock>
+
+                            <Border Background="{StaticResource BackgroundBrush}" BorderBrush="{StaticResource BorderBrush}"
+                                    BorderThickness="1" CornerRadius="4" Padding="10" Margin="0,10,0,0">
+                                <TextBlock Text="{Binding SelectedContact.IssueText}" FontSize="12" TextWrapping="Wrap" />
+                            </Border>
+
+                            <TextBlock FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"
+                                       TextWrapping="Wrap" Margin="0,10,0,0">
+                                <TextBlock.Text>
+                                    <Binding Path="SelectedContact.EditHint" StringFormat="Edit this party in the {0}" />
+                                </TextBlock.Text>
+                            </TextBlock>
+
+                            <Button Content="vCard of this contact" Margin="0,12,0,0"
+                                    Command="{Binding ExportVCardCommand}"
+                                    CommandParameter="{Binding SelectedContact}"
+                                    Style="{StaticResource PrimaryButton}" HorizontalAlignment="Stretch" />
+                        </StackPanel>
+                    </Border>
+
+                    <Border Style="{StaticResource CardBorder}">
+                        <StackPanel Margin="15">
+                            <TextBlock Text="Import contacts from CSV" Style="{StaticResource SubHeadingTextBlock}"
+                                       Margin="0,0,0,8" />
+                            <TextBlock Text="One file for both parties: a Party column says Customer or Supplier (blank defaults to Customer). GSTIN is validated with the same check as billing; rows duplicating an existing mobile or GSTIN are skipped, never merged; phone and email shapes are only warned about."
+                                       FontSize="11" TextWrapping="Wrap"
+                                       Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,10" />
+
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                <Button Content="Browse &amp; Preview" Command="{Binding PreviewCsvCommand}"
+                                        Style="{StaticResource PrimaryButton}" MinWidth="140"
+                                        IsEnabled="{Binding IsLoading, Converter={StaticResource InverseBoolConverter}}" />
+                                <Button Content="Commit Import" Command="{Binding CommitCsvCommand}"
+                                        Style="{StaticResource SuccessButton}" MinWidth="130" Margin="10,0,0,0"
+                                        IsEnabled="{Binding HasPreview}" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <Button Content="Download Template" Command="{Binding ExportTemplateCommand}"
+                                        Style="{StaticResource SecondaryButton}" MinWidth="140" />
+                                <Button Content="Clear" Command="{Binding ResetImportCommand}"
+                                        Style="{StaticResource SecondaryButton}" MinWidth="80" Margin="10,0,0,0" />
+                            </StackPanel>
+
+                            <TextBlock Text="{Binding SelectedFile, StringFormat=File: {0}}" FontSize="10"
+                                       Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap"
+                                       Margin="0,10,0,0" />
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+
+        <!-- Messages -->
+        <StackPanel Grid.Row="3" Margin="0,10,0,0">
+            <TextBlock Text="{Binding SuccessMessage}" Foreground="{StaticResource SuccessBrush}"
+                       FontSize="12" TextWrapping="Wrap" />
+            <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource ErrorBrush}"
+                       FontSize="12" TextWrapping="Wrap" />
+            <TextBlock Text="{Binding WarningMessage}" Foreground="{StaticResource WarningBrush}"
+                       FontSize="11" TextWrapping="Wrap" />
+        </StackPanel>
+    </Grid>
+</UserControl>

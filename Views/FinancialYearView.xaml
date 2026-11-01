@@ -1,0 +1,107 @@
+<UserControl x:Class="RetailBillingApp.Views.FinancialYearView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             d:DesignHeight="600" d:DesignWidth="1000">
+    <Grid Background="{StaticResource BackgroundBrush}" Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,20">
+            <TextBlock Text="Financial Year" Style="{StaticResource HeadingTextBlock}" />
+        </StackPanel>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="3*" />
+                <ColumnDefinition Width="2*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Financial Year List -->
+            <Border Grid.Column="0" Style="{StaticResource CardBorder}">
+                <DockPanel>
+                    <StackPanel DockPanel.Dock="Top" Margin="0,0,0,15">
+                        <TextBlock Text="Financial Years" Style="{StaticResource SubHeadingTextBlock}" />
+                    </StackPanel>
+
+                    <DataGrid ItemsSource="{Binding SortedFinancialYears}" SelectedItem="{Binding SelectedFy}"
+                              Style="{StaticResource DataGridStyle}" AutoGenerateColumns="False">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*" />
+                            <DataGridTextColumn Header="Start" Binding="{Binding StartDate, StringFormat=yyyy-MM-dd}" Width="100" />
+                            <DataGridTextColumn Header="End" Binding="{Binding EndDate, StringFormat=yyyy-MM-dd}" Width="100" />
+                            <DataGridTemplateColumn Header="Active" Width="80">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <CheckBox IsChecked="{Binding IsActive, Mode=OneWay}" IsEnabled="False"
+                                                  HorizontalAlignment="Center" />
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTemplateColumn Header="Locked" Width="80">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <CheckBox IsChecked="{Binding IsLocked, Mode=OneWay}" IsEnabled="False"
+                                                  HorizontalAlignment="Center" />
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                    <StackPanel DockPanel.Dock="Bottom" Margin="0,15,0,0">
+                        <Button Content="Set Active" Command="{Binding ToggleActiveCommand}"
+                                Style="{StaticResource PrimaryButton}" HorizontalAlignment="Left" Width="100"
+                                Margin="0,0,10,0" />
+                        <Button Content="Toggle Lock" Command="{Binding ToggleLockCommand}"
+                                Style="{StaticResource SecondaryButton}" HorizontalAlignment="Left" Width="100" />
+                        <!-- ACC-07: close out the year, create + activate next FY, roll number series -->
+                        <Button Content="Carry Forward to Next FY" Command="{Binding CarryForwardCommand}"
+                                Style="{StaticResource SecondaryButton}" HorizontalAlignment="Left" Width="180" Margin="0,8,0,0"
+                                ToolTip="Creates the next financial year, makes it active, and rolls number series into it" />
+                        <Button Content="Delete Selected" Command="{Binding DeleteFinancialYearCommand}"
+                                Style="{StaticResource DangerButton}" HorizontalAlignment="Right" Width="120" />
+                        <TextBlock Text="{Binding SuccessMessage}" Foreground="{StaticResource SuccessBrush}"
+                                   FontSize="12" Margin="0,8,0,0" TextWrapping="Wrap" />
+                    </StackPanel>
+                </DockPanel>
+            </Border>
+
+            <!-- Add Financial Year Form -->
+            <Border Grid.Column="1" Style="{StaticResource CardBorder}" MaxWidth="400">
+                <ScrollViewer>
+                    <StackPanel Margin="20">
+                        <TextBlock Text="Add Financial Year" Style="{StaticResource SubHeadingTextBlock}" />
+
+                        <TextBlock Text="Name" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,4" />
+                        <TextBox Text="{Binding NewName, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource BaseTextBox}" />
+
+                        <TextBlock Text="Start Date" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,10,0,4" />
+                        <DatePicker SelectedDate="{Binding NewStartDate, UpdateSourceTrigger=PropertyChanged}"
+                                  Style="{StaticResource BaseComboBox}" />
+
+                        <TextBlock Text="End Date" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,10,0,4" />
+                        <DatePicker SelectedDate="{Binding NewEndDate, UpdateSourceTrigger=PropertyChanged}"
+                                  Style="{StaticResource BaseComboBox}" />
+
+                        <CheckBox Content="Active Year" IsChecked="{Binding NewIsActive, UpdateSourceTrigger=PropertyChanged}"
+                                  Margin="0,10,0,0" />
+                        <CheckBox Content="Locked (No changes allowed)" IsChecked="{Binding NewIsLocked, UpdateSourceTrigger=PropertyChanged}"
+                                  Margin="0,5,0,0" />
+
+                        <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource ErrorBrush}"
+                                   FontSize="12" Margin="0,15,0,0" TextWrapping="Wrap" />
+
+                        <Button Content="Add Year" Command="{Binding AddFinancialYearCommand}"
+                                Style="{StaticResource SuccessButton}" HorizontalAlignment="Stretch" Margin="0,15,0,0" />
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

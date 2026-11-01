@@ -1,0 +1,183 @@
+<UserControl x:Class="RetailBillingApp.Views.CriticalChangePolicyView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             d:DesignHeight="760" d:DesignWidth="1100">
+    <Grid Background="{StaticResource BackgroundBrush}" Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,16">
+            <TextBlock Text="Critical Change Passcode" Style="{StaticResource HeadingTextBlock}" />
+            <TextBlock Text="SEC-05: one separate shop passcode for closed periods and destructive changes - asked for in addition to the INV-10 admin override, never instead of it"
+                       Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" Margin="0,5,0,0" TextWrapping="Wrap" />
+        </StackPanel>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1.05*" MinWidth="400" />
+                <ColumnDefinition Width="16" />
+                <ColumnDefinition Width="*" MinWidth="380" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Policy editor -->
+            <Border Grid.Column="0" Style="{StaticResource CardBorder}" VerticalAlignment="Top">
+                <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="15">
+                        <TextBlock Text="Which changes need the passcode" Style="{StaticResource SubHeadingTextBlock}" Margin="0,0,0,10" />
+
+                        <CheckBox Content="Enable the critical-change passcode (master switch)"
+                                  IsChecked="{Binding IsEnabled}" Margin="0,0,0,10" FontWeight="SemiBold" />
+
+                        <CheckBox Content="Invoice and estimate delete" IsChecked="{Binding RequireInvoiceDelete}" Margin="0,2,0,2" />
+                        <TextBlock Text="{Binding InvoiceDeleteGate}" TextWrapping="Wrap" FontSize="11" Margin="20,0,0,6"
+                                   Foreground="{StaticResource TextSecondaryBrush}" />
+
+                        <CheckBox Content="Invoice write-off" IsChecked="{Binding RequireWriteOff}" Margin="0,2,0,2" />
+                        <TextBlock Text="{Binding WriteOffGate}" TextWrapping="Wrap" FontSize="11" Margin="20,0,0,6"
+                                   Foreground="{StaticResource TextSecondaryBrush}" />
+
+                        <CheckBox Content="Estimate to invoice conversion" IsChecked="{Binding RequireEstimateConversion}" Margin="0,2,0,2" />
+                        <TextBlock Text="{Binding EstimateConversionGate}" TextWrapping="Wrap" FontSize="11" Margin="20,0,0,6"
+                                   Foreground="{StaticResource TextSecondaryBrush}" />
+
+                        <CheckBox Content="Edit inside a locked period" IsChecked="{Binding RequireLockedPeriodEdit}" Margin="0,2,0,2" />
+                        <TextBlock Text="{Binding LockedPeriodEditGate}" TextWrapping="Wrap" FontSize="11" Margin="20,0,0,6"
+                                   Foreground="{StaticResource TextSecondaryBrush}" />
+
+                        <CheckBox Content="Manual stock adjustment" IsChecked="{Binding RequireStockAdjustment}" Margin="0,2,0,2" />
+                        <TextBlock Text="{Binding StockAdjustmentGate}" TextWrapping="Wrap" FontSize="11" Margin="20,0,0,6"
+                                   Foreground="{StaticResource TextSecondaryBrush}" />
+
+                        <CheckBox Content="Financial year lock and unlock" IsChecked="{Binding RequireFinancialYearLock}" Margin="0,2,0,2" />
+                        <TextBlock Text="{Binding FinancialYearLockGate}" TextWrapping="Wrap" FontSize="11" Margin="20,0,0,10"
+                                   Foreground="{StaticResource TextSecondaryBrush}" />
+
+                        <Grid Margin="0,4,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="12" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Wrong attempts before lockout" FontSize="12" Margin="0,0,0,4" />
+                                <ComboBox ItemsSource="{Binding AttemptLimitOptions}"
+                                          SelectedItem="{Binding SelectedAttemptLimit}"
+                                          Style="{StaticResource BaseComboBox}" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Lockout length (minutes)" FontSize="12" Margin="0,0,0,4" />
+                                <ComboBox ItemsSource="{Binding LockoutMinutesOptions}"
+                                          SelectedItem="{Binding SelectedLockoutMinutes}"
+                                          Style="{StaticResource BaseComboBox}" />
+                            </StackPanel>
+                        </Grid>
+
+                        <Border Background="{StaticResource SurfaceBrush}" CornerRadius="4" Padding="12" Margin="0,14,0,0">
+                            <TextBlock Text="{Binding Summary}" TextWrapping="Wrap" FontSize="12"
+                                       Foreground="{StaticResource TextSecondaryBrush}" />
+                        </Border>
+
+                        <StackPanel Orientation="Horizontal" Margin="0,16,0,0">
+                            <Button Content="Save Policy" Command="{Binding SavePolicyCommand}"
+                                    Style="{StaticResource PrimaryButton}"
+                                    IsEnabled="{Binding IsDirty}"
+                                    HorizontalAlignment="Left" MinWidth="140" />
+                            <Button Content="Reload" Command="{Binding RefreshCommand}"
+                                    Style="{StaticResource SecondaryButton}" MinWidth="100" Margin="10,0,0,0" />
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+
+            <!-- Passcode + status -->
+            <Grid Grid.Column="2">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <Border Grid.Row="0" Style="{StaticResource CardBorder}" VerticalAlignment="Top">
+                    <StackPanel Margin="15">
+                        <TextBlock Text="The passcode itself" Style="{StaticResource SubHeadingTextBlock}" Margin="0,0,0,8" />
+
+                        <TextBlock Text="{Binding PasscodeStateText}" TextWrapping="Wrap" FontSize="12"
+                                   Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,10" />
+
+                        <TextBlock Text="Current passcode (leave blank only if none is set yet)"
+                                   FontSize="12" Margin="0,0,0,4" />
+                        <PasswordBox x:Name="CurrentPasscodeBox" Style="{StaticResource BasePasswordBox}" MaxLength="40" />
+
+                        <TextBlock Text="New passcode (minimum 6 characters)" FontSize="12" Margin="0,10,0,4" />
+                        <PasswordBox x:Name="NewPasscodeBox" Style="{StaticResource BasePasswordBox}" MaxLength="40" />
+
+                        <TextBlock Text="Repeat the new passcode" FontSize="12" Margin="0,10,0,4" />
+                        <PasswordBox x:Name="ConfirmPasscodeBox" Style="{StaticResource BasePasswordBox}" MaxLength="40" />
+
+                        <StackPanel Orientation="Horizontal" Margin="0,14,0,0">
+                            <Button Content="Save Passcode" Command="{Binding SavePasscodeCommand}"
+                                    Click="SavePasscode_Click"
+                                    Style="{StaticResource PrimaryButton}" MinWidth="130" />
+                            <Button Content="Remove Passcode" Command="{Binding ClearPasscodeCommand}"
+                                    Click="ClearPasscode_Click"
+                                    Style="{StaticResource DangerButton}" MinWidth="130" Margin="10,0,0,0" />
+                        </StackPanel>
+
+                        <Separator Margin="0,14,0,10" />
+
+                        <TextBlock Text="Try a passcode (no attempt counted, no lockout, no audit)"
+                                   FontSize="12" Margin="0,0,0,4" />
+                        <StackPanel Orientation="Horizontal">
+                            <PasswordBox x:Name="TestPasscodeBox" Style="{StaticResource BasePasswordBox}"
+                                         Width="190" MaxLength="40" />
+                            <Button Content="Test Passcode" Command="{Binding TestGateCommand}"
+                                    Click="TestGate_Click"
+                                    Style="{StaticResource SuccessButton}" MinWidth="120" Margin="10,0,0,0"
+                                    VerticalAlignment="Stretch" />
+                        </StackPanel>
+
+                        <TextBlock Text="{Binding TestResultText}" TextWrapping="Wrap" FontSize="12"
+                                   Margin="0,8,0,0" Foreground="{StaticResource TextPrimaryBrush}" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Attempt / lockout state -->
+                <Border Grid.Row="1" Style="{StaticResource CardBorder}" Margin="0,16,0,0">
+                    <StackPanel Margin="15">
+                        <Grid Margin="0,0,0,8">
+                            <TextBlock Text="Attempts and lockout" Style="{StaticResource SubHeadingTextBlock}"
+                                       VerticalAlignment="Center" />
+                        </Grid>
+
+                        <TextBlock Text="{Binding LockoutStateText}" TextWrapping="Wrap" FontSize="12"
+                                   Foreground="{StaticResource WarningBrush}" Margin="0,0,0,10" />
+
+                        <Button Content="Reset lockout and failed attempts" Command="{Binding ResetLockoutCommand}"
+                                IsEnabled="{Binding HasLockoutState}"
+                                Style="{StaticResource SecondaryButton}" HorizontalAlignment="Left" MinWidth="200" />
+
+                        <TextBlock Text="Every allow, refusal and lockout is written to the audit trail (entity CriticalChangeSetting), and every policy or passcode change is recorded with a before and after snapshot."
+                                   TextWrapping="Wrap" FontSize="11" Margin="0,12,0,0"
+                                   Foreground="{StaticResource TextSecondaryBrush}" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Grid>
+
+        <!-- Messages -->
+        <StackPanel Grid.Row="2" Margin="0,10,0,0">
+            <TextBlock Text="{Binding SuccessMessage}" Foreground="{StaticResource SuccessBrush}"
+                       FontSize="12" TextWrapping="Wrap" />
+            <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource ErrorBrush}"
+                       FontSize="12" TextWrapping="Wrap" />
+        </StackPanel>
+    </Grid>
+</UserControl>

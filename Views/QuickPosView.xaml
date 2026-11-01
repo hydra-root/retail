@@ -1,0 +1,227 @@
+<UserControl x:Class="RetailBillingApp.Views.QuickPosView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             d:DesignHeight="650" d:DesignWidth="1150">
+
+    <!-- INV-12: PreviewKeyDown on the root wires the F-key shortcuts in code-behind
+         (never KeyBindings to a Command inside a DataTemplate). -->
+    <Grid Background="{StaticResource BackgroundBrush}" Margin="20" PreviewKeyDown="OnPreviewKeyDown">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Header + visible shortcut legend strip -->
+        <DockPanel Grid.Row="0" LastChildFill="False" Margin="0,0,0,4">
+            <TextBlock Text="Quick POS" Style="{StaticResource HeadingTextBlock}" />
+            <Button Content="Refresh" Command="{Binding RefreshCommand}"
+                    Style="{StaticResource SecondaryButton}" DockPanel.Dock="Right"
+                    Width="90" HorizontalAlignment="Right" Margin="20,0,0,0" />
+            <Border Style="{StaticResource CardBorder}" Padding="12,6" Margin="20,0,0,0"
+                    VerticalAlignment="Center" DockPanel.Dock="Left">
+                <TextBlock Foreground="{StaticResource TextSecondaryBrush}" FontSize="12"
+                           Text="F2 scan · F3 customer · F4 hold ticket · F5 recall held · F9 cash settle · Esc clear form" />
+            </Border>
+        </DockPanel>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="3*" />
+                <ColumnDefinition Width="2*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- ============ LEFT: the till itself ============ -->
+            <Grid Grid.Column="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <!-- Barcode field: kept focused; Enter (scanner or typed) triggers the scan command -->
+                <Border Grid.Row="0" Style="{StaticResource CardBorder}" Padding="12">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="Scan" VerticalAlignment="Center" FontWeight="SemiBold"
+                                   Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,10,0" />
+                        <TextBox x:Name="BarcodeBox" Width="440" FontSize="18"
+                                 Text="{Binding ScanText, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource BaseTextBox}">
+                            <TextBox.InputBindings>
+                                <KeyBinding Key="Enter" Command="{Binding ScanCommand}" />
+                            </TextBox.InputBindings>
+                        </TextBox>
+                        <TextBlock Text="{Binding PriceSource}" VerticalAlignment="Center" Margin="12,0,0,0"
+                                   FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"
+                                   TextWrapping="Wrap" MaxWidth="200" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Status strip: reason lines for unknown / expired codes, scan warnings, last sale -->
+                <StackPanel Grid.Row="1" Margin="10,6,10,0">
+                    <TextBlock Text="{Binding SuccessMessage}" Foreground="{StaticResource SuccessBrush}"
+                               FontSize="13" TextWrapping="Wrap" />
+                    <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource ErrorBrush}"
+                               FontSize="13" TextWrapping="Wrap" />
+                    <TextBlock Text="{Binding WarningMessage}" Foreground="{StaticResource WarningBrush}"
+                               FontSize="12" TextWrapping="Wrap" />
+                </StackPanel>
+
+                <!-- Line grid: qty +/- buttons, editable qty box, remove -->
+                <Border Grid.Row="2" Style="{StaticResource CardBorder}">
+                    <DataGrid ItemsSource="{Binding Lines}"
+                              Style="{StaticResource DataGridStyle}" AutoGenerateColumns="False"
+                              CanUserAddRows="False" CanUserDeleteRows="False" IsReadOnly="False">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Item" Binding="{Binding ProductName}" Width="*" IsReadOnly="True" />
+                            <DataGridTextColumn Header="HSN" Binding="{Binding HSNCode}" Width="70" IsReadOnly="True" />
+                            <DataGridTextColumn Header="Tax %" Binding="{Binding TaxPercentage}" Width="55" IsReadOnly="True" />
+                            <DataGridTextColumn Header="Incl?" Binding="{Binding TaxInclusive}" Width="55" IsReadOnly="True" />
+                            <DataGridTemplateColumn Header="Qty" Width="110">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Button Content="−" Width="24" FontSize="11" Padding="0"
+                                                    Style="{StaticResource SecondaryButton}" Margin="0,0,4,0"
+                                                    Command="{Binding DataContext.DecreaseQtyCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                    CommandParameter="{Binding}" />
+                                            <TextBox Text="{Binding Quantity, UpdateSourceTrigger=PropertyChanged}"
+                                                     Style="{StaticResource BaseTextBox}" Width="42" Padding="2" />
+                                            <Button Content="+" Width="24" FontSize="11" Padding="0"
+                                                    Style="{StaticResource SuccessButton}" Margin="4,0,0,0"
+                                                    Command="{Binding DataContext.IncreaseQtyCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                    CommandParameter="{Binding}" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTextColumn Header="Rate" Binding="{Binding Rate, StringFormat=C}" Width="80" IsReadOnly="True" />
+                            <DataGridTextColumn Header="Tax" Binding="{Binding TaxAmount, StringFormat=C}" Width="70" IsReadOnly="True" />
+                            <DataGridTextColumn Header="Line Total" Binding="{Binding Total, StringFormat=C}" Width="90" IsReadOnly="True" />
+                            <DataGridTemplateColumn Header="" Width="70">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Button Content="Remove"
+                                                Command="{Binding DataContext.RemoveLineCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                CommandParameter="{Binding}"
+                                                Style="{StaticResource DangerButton}" FontSize="11" Padding="6,2" />
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Border>
+
+                <!-- Running totals -->
+                <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="10,8,10,4" HorizontalAlignment="Right">
+                    <TextBlock Text="Sub-total " Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
+                    <TextBlock Text="{Binding SubTotal, StringFormat=C}" FontWeight="SemiBold"
+                               Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,20,0" VerticalAlignment="Center" />
+                    <TextBlock Text="Tax " Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
+                    <TextBlock Text="{Binding TaxAmount, StringFormat=C}" FontWeight="SemiBold"
+                               Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,20,0" VerticalAlignment="Center" />
+                    <TextBlock Text="TOTAL " FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                    <TextBlock Text="{Binding TotalAmount, StringFormat=C}" FontWeight="Bold" FontSize="18"
+                               Foreground="{StaticResource PrimaryBrush}" VerticalAlignment="Center" />
+                </StackPanel>
+
+                <!-- Settle card: mode picker, tender, change, action buttons -->
+                <Border Grid.Row="4" Style="{StaticResource CardBorder}">
+                    <StackPanel>
+                        <WrapPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,16,0">
+                                <TextBlock Text="Mode" VerticalAlignment="Center" FontWeight="SemiBold"
+                                           Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,6,0" />
+                                <ComboBox ItemsSource="{Binding PaymentModes}" SelectedItem="{Binding PaymentMode}"
+                                          Style="{StaticResource BaseComboBox}" Width="90" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,16,0">
+                                <TextBlock Text="Paid" VerticalAlignment="Center" FontWeight="SemiBold"
+                                           Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,6,0" />
+                                <TextBox Text="{Binding PaidAmount, UpdateSourceTrigger=PropertyChanged}"
+                                         Style="{StaticResource BaseTextBox}" Width="110" />
+                            </StackPanel>
+                            <TextBlock VerticalAlignment="Center" Foreground="{StaticResource SuccessBrush}" Margin="0,0,16,0">
+                                <TextBlock.Text>
+                                    <Binding Path="ChangeDue" StringFormat="Change due {0:C}" />
+                                </TextBlock.Text>
+                            </TextBlock>
+                            <TextBlock VerticalAlignment="Center" Foreground="{StaticResource WarningBrush}" Margin="0,0,16,0">
+                                <TextBlock.Text>
+                                    <Binding Path="BalanceDue" StringFormat="Balance due {0:C}" />
+                                </TextBlock.Text>
+                            </TextBlock>
+                        </WrapPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                            <Button Content="Settle Cash (F9)" Command="{Binding SettleCashCommand}"
+                                    Style="{StaticResource SuccessButton}" Margin="0,0,10,0" />
+                            <Button Content="Settle" Command="{Binding SettleCommand}"
+                                    Style="{StaticResource PrimaryButton}" Margin="0,0,10,0" />
+                            <Button Content="Hold (F4)" Command="{Binding HoldCommand}"
+                                    Style="{StaticResource SecondaryButton}" Margin="0,0,10,0" />
+                            <Button Content="Clear (Esc)" Command="{Binding ClearFormCommand}"
+                                    Style="{StaticResource DangerButton}" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- ============ RIGHT: customer + hold/recall ============ -->
+            <StackPanel Grid.Column="1">
+                <Border Style="{StaticResource CardBorder}">
+                    <StackPanel>
+                        <TextBlock Text="Customer (F3 on the name box)" Style="{StaticResource SubHeadingTextBlock}" />
+
+                        <TextBlock Text="Master customer (pricing + credit checks)" FontWeight="SemiBold"
+                                   Foreground="{StaticResource TextSecondaryBrush}" Margin="0,10,0,4" />
+                        <ComboBox ItemsSource="{Binding Customers}" DisplayMemberPath="Name"
+                                  SelectedItem="{Binding SelectedCustomer}"
+                                  Style="{StaticResource BaseComboBox}" />
+
+                        <TextBlock Text="Name on the bill (walk-in is fine)" FontWeight="SemiBold"
+                                   Foreground="{StaticResource TextSecondaryBrush}" Margin="0,10,0,4" />
+                        <TextBox x:Name="CustomerNameBox" Style="{StaticResource BaseTextBox}"
+                                 Text="{Binding CustomerName, UpdateSourceTrigger=PropertyChanged}" />
+
+                        <CheckBox Content="Rates include GST (MRP / tax-inclusive)" IsChecked="{Binding TaxInclusive}"
+                                  Margin="0,12,0,0" Foreground="{StaticResource TextPrimaryBrush}" />
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource CardBorder}">
+                    <StackPanel>
+                        <TextBlock Text="Held tickets" Style="{StaticResource SubHeadingTextBlock}" />
+
+                        <TextBlock Text="Label for the next hold (F4)" FontWeight="SemiBold"
+                                   Foreground="{StaticResource TextSecondaryBrush}" Margin="0,10,0,4" />
+                        <TextBox Text="{Binding HoldLabel, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource BaseTextBox}" />
+
+                        <DataGrid ItemsSource="{Binding HeldTickets}" SelectedItem="{Binding SelectedHeldTicket}"
+                                  Style="{StaticResource DataGridStyle}" AutoGenerateColumns="False"
+                                  IsReadOnly="True" HeadersVisibility="Column" MaxHeight="220" Margin="0,10,0,0">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Ticket" Binding="{Binding HoldLabel}" Width="*" />
+                                <DataGridTextColumn Header="Held" Binding="{Binding HeldAtLocal}" Width="90" />
+                                <DataGridTextColumn Header="Lines" Binding="{Binding LineCount}" Width="50" />
+                                <DataGridTextColumn Header="Total" Binding="{Binding TotalAmount, StringFormat=C}" Width="90" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+
+                        <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                            <Button Content="Recall selected (F5)" Command="{Binding RecallCommand}"
+                                    Style="{StaticResource SecondaryButton}" Margin="0,0,10,0" />
+                            <TextBlock Text="F5 with nothing selected recalls the newest ticket."
+                                       FontSize="11" VerticalAlignment="Center" TextWrapping="Wrap" MaxWidth="180"
+                                       Foreground="{StaticResource TextSecondaryBrush}" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</UserControl>

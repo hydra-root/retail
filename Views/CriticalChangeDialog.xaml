@@ -1,0 +1,65 @@
+<Window x:Class="RetailBillingApp.Views.CriticalChangeDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        mc:Ignorable="d"
+        Title="Critical Change - Passcode Required"
+        Width="480"
+        SizeToContent="Height"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner"
+        Background="{StaticResource BackgroundBrush}"
+        FocusManager.FocusedElement="{Binding ElementName=PasscodeBox}">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Header: what is being changed, and why it is gated -->
+        <Border Grid.Row="0" Background="{StaticResource PrimaryDarkBrush}" Padding="20,12,20,12">
+            <StackPanel>
+                <TextBlock x:Name="ActionText" FontSize="14" FontWeight="SemiBold" Foreground="White" TextWrapping="Wrap" />
+                <TextBlock x:Name="GateText" FontSize="12" Foreground="White" TextWrapping="Wrap"
+                           Margin="0,6,0,0" Opacity="0.9" />
+            </StackPanel>
+        </Border>
+
+        <StackPanel Grid.Row="1" Margin="20,16,20,0">
+            <TextBlock Text="Critical-change passcode" FontWeight="SemiBold" Margin="0,0,0,6"
+                       Foreground="{StaticResource TextSecondaryBrush}" />
+            <PasswordBox x:Name="PasscodeBox" Style="{StaticResource BasePasswordBox}" />
+
+            <TextBlock x:Name="AttemptsText" FontSize="12" Margin="0,8,0,0" TextWrapping="Wrap"
+                       Foreground="{StaticResource WarningBrush}" Visibility="Collapsed" />
+
+            <!-- Lockout countdown: inputs are frozen until the window closes -->
+            <Border x:Name="LockoutPanel" Background="{StaticResource SurfaceBrush}"
+                    BorderBrush="{StaticResource WarningBrush}" BorderThickness="1"
+                    CornerRadius="4" Padding="12" Margin="0,10,0,0" Visibility="Collapsed">
+                <TextBlock x:Name="LockoutText" FontSize="12" TextWrapping="Wrap"
+                           Foreground="{StaticResource WarningBrush}" />
+            </Border>
+
+            <TextBlock Text="Reason (optional - recorded in the audit trail)" FontWeight="SemiBold"
+                       Margin="0,12,0,6" Foreground="{StaticResource TextSecondaryBrush}" />
+            <TextBox x:Name="ReasonBox" Style="{StaticResource BaseTextBox}" MaxLength="300"
+                     AcceptsReturn="True" TextWrapping="Wrap" Height="56"
+                     VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Top" />
+
+            <TextBlock x:Name="ErrorText" Foreground="{StaticResource ErrorBrush}"
+                       FontSize="12" Margin="0,8,0,0" Visibility="Collapsed"
+                       TextWrapping="Wrap" />
+        </StackPanel>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="20,14,20,20">
+            <Button x:Name="OkButton" Content="Verify and Continue" IsDefault="True" Width="150"
+                    Click="Confirm_Click" Style="{StaticResource PrimaryButton}" Margin="0,0,10,0" />
+            <Button Content="Cancel" IsCancel="True" Width="110" Click="Cancel_Click"
+                    Style="{StaticResource SecondaryButton}" />
+        </StackPanel>
+    </Grid>
+</Window>

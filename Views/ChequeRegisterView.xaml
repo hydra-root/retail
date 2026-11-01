@@ -1,0 +1,369 @@
+<UserControl x:Class="RetailBillingApp.Views.ChequeRegisterView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             d:DesignHeight="820" d:DesignWidth="1320">
+    <Grid Background="{StaticResource BackgroundBrush}" Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- ================= Header + toolbar (PAY-11) ================= -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,12">
+            <TextBlock Text="Cheque Register" Style="{StaticResource HeadingTextBlock}" />
+            <TextBlock Text="Post-dated cheques received and paid out, their presentment dates, and the bank's verdict. A cheque is a promise: it becomes money only when it clears, and the ledger is written for that by the Payments engine."
+                       Foreground="{StaticResource TextSecondaryBrush}" FontSize="11" TextWrapping="Wrap" Margin="0,6,0,0" />
+
+            <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                <TextBlock Text="Issued from:" VerticalAlignment="Center" Margin="0,0,6,0" />
+                <DatePicker SelectedDate="{Binding StartDate, UpdateSourceTrigger=PropertyChanged}"
+                            Style="{StaticResource BaseDatePicker}" />
+                <TextBlock Text="to:" VerticalAlignment="Center" Margin="10,0,6,0" />
+                <DatePicker SelectedDate="{Binding EndDate, UpdateSourceTrigger=PropertyChanged}"
+                            Style="{StaticResource BaseDatePicker}" />
+                <Button Content="This Month" Command="{Binding SetCurrentMonthCommand}"
+                        Style="{StaticResource SecondaryButton}" Margin="12,0,0,0" Padding="10,4"
+                        ToolTip="Narrow the register to the current calendar month." />
+                <Button Content="This F.Y." Command="{Binding SetCurrentFinancialYearCommand}"
+                        Style="{StaticResource SecondaryButton}" Margin="6,0,0,0" Padding="10,4"
+                        ToolTip="From 1 April of the current financial year." />
+                <Button Content="Refresh" Command="{Binding RefreshCommand}"
+                        Style="{StaticResource PrimaryButton}" Margin="15,0,0,0"
+                        ToolTip="Re-read the register with these filters." />
+                <Button Content="Export CSV" Command="{Binding ExportCsvCommand}"
+                        Style="{StaticResource SecondaryButton}" Margin="10,0,0,0"
+                        ToolTip="Save the rows on screen (plus the KPI block) as a UTF-8 CSV on the Desktop." />
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                <TextBlock Text="Direction:" VerticalAlignment="Center" Margin="0,0,6,0" />
+                <ComboBox ItemsSource="{Binding DirectionFilters}" SelectedItem="{Binding DirectionFilter}"
+                          Style="{StaticResource BaseComboBox}" MinWidth="140" />
+                <TextBlock Text="Status:" VerticalAlignment="Center" Margin="12,0,6,0" />
+                <ComboBox ItemsSource="{Binding StatusFilters}" SelectedItem="{Binding StatusFilter}"
+                          Style="{StaticResource BaseComboBox}" MinWidth="140" />
+                <TextBlock Text="Search:" VerticalAlignment="Center" Margin="12,0,6,0" />
+                <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                         Style="{StaticResource BaseTextBox}" MinWidth="200" />
+                <CheckBox Content="Post-dated only" IsChecked="{Binding PostDatedOnly}"
+                          VerticalAlignment="Center" Margin="12,0,0,0"
+                          ToolTip="Keep only cheques whose presentment date has not arrived yet." />
+                <TextBlock VerticalAlignment="Center" Margin="14,0,0,0" FontSize="11"
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           Text="{Binding FilterSummary}"
+                           ToolTip="Exactly what the grid and the cards below are built from." />
+            </StackPanel>
+        </StackPanel>
+
+        <!-- ================= KPI cards: computed from the rows on screen ================= -->
+        <WrapPanel Grid.Row="1" Margin="0,0,0,12">
+            <Border Style="{StaticResource CardBorder}" Margin="0,0,10,10" MinWidth="185">
+                <StackPanel Margin="14">
+                    <TextBlock Text="To Collect (Received)" Style="{StaticResource SubHeadingTextBlock}" FontSize="11" />
+                    <TextBlock Text="{Binding Kpis.PendingInValue, StringFormat={}{0:C}}" FontSize="22" FontWeight="Bold" />
+                    <TextBlock FontSize="11" Foreground="{StaticResource TextSecondaryBrush}">
+                        <TextBlock.Text>
+                            <Binding Path="Kpis.PendingInCount" StringFormat="Cheques held from customers: {0}" />
+                        </TextBlock.Text>
+                    </TextBlock>
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource CardBorder}" Margin="0,0,10,10" MinWidth="185">
+                <StackPanel Margin="14">
+                    <TextBlock Text="To Pay (Paid Out)" Style="{StaticResource SubHeadingTextBlock}" FontSize="11" />
+                    <TextBlock Text="{Binding Kpis.PendingOutValue, StringFormat={}{0:C}}" FontSize="22" FontWeight="Bold"
+                               Foreground="{StaticResource WarningBrush}" />
+                    <TextBlock FontSize="11" Foreground="{StaticResource TextSecondaryBrush}">
+                        <TextBlock.Text>
+                            <Binding Path="Kpis.PendingOutCount" StringFormat="Cheques issued to suppliers: {0}" />
+                        </TextBlock.Text>
+                    </TextBlock>
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource CardBorder}" Margin="0,0,10,10" MinWidth="185">
+                <StackPanel Margin="14">
+                    <TextBlock Text="Cleared This Month" Style="{StaticResource SubHeadingTextBlock}" FontSize="11" />
+                    <TextBlock Text="{Binding Kpis.ClearedThisMonthValue, StringFormat={}{0:C}}" FontSize="22"
+                               FontWeight="Bold" Foreground="{StaticResource SuccessBrush}" />
+                    <TextBlock FontSize="11" Foreground="{StaticResource TextSecondaryBrush}">
+                        <TextBlock.Text>
+                            <Binding Path="Kpis.ClearedThisMonthCount" StringFormat="Bank honoured: {0}" />
+                        </TextBlock.Text>
+                    </TextBlock>
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource CardBorder}" Margin="0,0,10,10" MinWidth="185">
+                <StackPanel Margin="14">
+                    <TextBlock Text="Bounced" Style="{StaticResource SubHeadingTextBlock}" FontSize="11" />
+                    <TextBlock Text="{Binding Kpis.BouncedValue, StringFormat={}{0:C}}" FontSize="22" FontWeight="Bold"
+                               Foreground="{StaticResource ErrorBrush}" />
+                    <TextBlock FontSize="11" Foreground="{StaticResource TextSecondaryBrush}">
+                        <TextBlock.Text>
+                            <Binding Path="Kpis.BouncedCount" StringFormat="Returned unpaid: {0} (final)" />
+                        </TextBlock.Text>
+                    </TextBlock>
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource CardBorder}" Margin="0,0,10,10" MinWidth="200">
+                <StackPanel Margin="14">
+                    <TextBlock Text="Overdue To Present" Style="{StaticResource SubHeadingTextBlock}" FontSize="11" />
+                    <TextBlock Text="{Binding Kpis.OverdueToPresentCount}" FontSize="22" FontWeight="Bold"
+                               Foreground="{StaticResource WarningBrush}" />
+                    <TextBlock FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap">
+                        <TextBlock.Text>
+                            <Binding Path="Kpis.OverdueToPresentValue" StringFormat="Present at the bank today, worth {0:C}" />
+                        </TextBlock.Text>
+                    </TextBlock>
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource CardBorder}" Margin="0,0,10,10" MinWidth="240">
+                <StackPanel Margin="14">
+                    <TextBlock Text="Pending Age (from presentment date)" Style="{StaticResource SubHeadingTextBlock}" FontSize="11" />
+                    <TextBlock Text="{Binding Kpis.PendingTotalValue, StringFormat={}{0:C}}" FontSize="22" FontWeight="Bold" />
+                    <TextBlock Text="{Binding Kpis.PendingAgeProfile}" FontSize="11" TextWrapping="Wrap"
+                               Foreground="{StaticResource TextSecondaryBrush}" />
+                    <TextBlock FontSize="11" TextWrapping="Wrap" Foreground="{StaticResource TextSecondaryBrush}">
+                        <TextBlock.Text>
+                            <Binding Path="Kpis.StalePendingValue" StringFormat="Outlived its presentment date by a month or more: {0:C}" />
+                        </TextBlock.Text>
+                    </TextBlock>
+                </StackPanel>
+            </Border>
+        </WrapPanel>
+
+        <!-- ================= Register grid + add/edit form ================= -->
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="3*" MinWidth="520" />
+                <ColumnDefinition Width="330" />
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0" Style="{StaticResource CardBorder}" Margin="0,0,10,0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Row="0" Margin="4,0,0,8" FontSize="11" TextWrapping="Wrap"
+                               Foreground="{StaticResource TextSecondaryBrush}"
+                               Text="Ordered by presentment date, soonest payable first. Cleared, Bounced and Cancelled are final — a new instrument is a new row." />
+
+                    <DataGrid Grid.Row="1" x:Name="ChequeGrid" ItemsSource="{Binding Rows}"
+                              SelectedItem="{Binding SelectedRow}" Style="{StaticResource DataGridStyle}"
+                              IsReadOnly="True"
+                              Visibility="{Binding HasRows, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <DataGrid.RowStyle>
+                            <Style TargetType="DataGridRow">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsOverdueToPresent}" Value="True">
+                                        <Setter Property="Background" Value="{StaticResource BackgroundBrush}" />
+                                        <Setter Property="ToolTip"
+                                                Value="Its presentment date has passed — take it to the bank, then record the verdict." />
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding Status}" Value="Bounced">
+                                        <Setter Property="ToolTip"
+                                                Value="Bounced is final. The customer still owes the money — chase it on the Receivables screen." />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </DataGrid.RowStyle>
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Type" Binding="{Binding DirectionLabel}" Width="80" />
+                            <DataGridTextColumn Header="Cheque No" Binding="{Binding ChequeNumber}" Width="100" />
+                            <DataGridTextColumn Header="Party" Binding="{Binding PartyLabel}" Width="*" MinWidth="140" />
+                            <DataGridTextColumn Header="Bank" Binding="{Binding BankName}" Width="130" />
+                            <DataGridTextColumn Header="Issued" Binding="{Binding IssueDateText}" Width="85" />
+                            <DataGridTextColumn Header="Presentable" Binding="{Binding PresentmentDateText}" Width="92" />
+                            <DataGridTextColumn Header="Days Late" Binding="{Binding DaysPastPresentment}" Width="70" />
+                            <DataGridTextColumn Header="Amount" Binding="{Binding Amount, StringFormat=C}" Width="100" />
+                            <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="95" />
+                            <DataGridTextColumn Header="Outcome Date" Binding="{Binding OutcomeDateText}" Width="95" />
+                            <DataGridTextColumn Header="Receipt" Binding="{Binding ReceiptLabel}" Width="120" />
+                            <DataGridTextColumn Header="Bounce Reason" Binding="{Binding BounceReason}" Width="150" />
+                            <DataGridTextColumn Header="Added" Binding="{Binding CreatedAtText}" Width="110" />
+
+                            <!-- Bank verdict: the row itself decides what is still allowed -->
+                            <DataGridTemplateColumn Header="Bank Verdict" Width="290">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <Button Content="Cleared" Style="{StaticResource SuccessButton}"
+                                                    FontSize="11" Padding="7,2" Margin="0,0,4,0"
+                                                    IsEnabled="{Binding IsOpen}"
+                                                    ToolTip="Mark cleared, honouring this cheque's own auto-receipt box. Blocked when the row is already Cleared / Bounced / Cancelled, when the date is impossible, or when that financial year is locked."
+                                                    Command="{Binding DataContext.MarkClearedCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                    CommandParameter="{Binding}" />
+                                            <Button Content="+ Receipt" Style="{StaticResource PrimaryButton}"
+                                                    FontSize="11" Padding="7,2" Margin="0,0,4,0"
+                                                    IsEnabled="{Binding IsOpen}"
+                                                    ToolTip="Mark cleared AND raise the receipt through the Payments engine (received cheques only; anything over the open invoices is held as an advance)."
+                                                    Command="{Binding DataContext.MarkClearedWithReceiptCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                    CommandParameter="{Binding}" />
+                                            <Button Content="Handed" Style="{StaticResource SecondaryButton}"
+                                                    FontSize="11" Padding="7,2" Margin="0,0,4,0"
+                                                    IsEnabled="{Binding IsOpen}"
+                                                    ToolTip="The leaf has changed hands but the bank has not given a verdict yet (Pending to Handed-over)."
+                                                    Command="{Binding DataContext.MarkHandedOverCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                    CommandParameter="{Binding}" />
+                                            <Button Content="Bounced" Style="{StaticResource DangerButton}"
+                                                    FontSize="11" Padding="7,2" Margin="0,0,4,0"
+                                                    IsEnabled="{Binding IsOpen}"
+                                                    ToolTip="Record today's date as bounced, using the bounce reason chosen beside the form. Final."
+                                                    Command="{Binding DataContext.MarkBouncedCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                    CommandParameter="{Binding}" />
+                                            <Button Content="Cancel" Style="{StaticResource SecondaryButton}"
+                                                    FontSize="11" Padding="7,2"
+                                                    IsEnabled="{Binding IsOpen}"
+                                                    ToolTip="Withdraw the instrument (wrong leaf, stop-payment, lost). Refused once a receipt stands on it — reverse the receipt first. Final."
+                                                    Command="{Binding DataContext.CancelChequeCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                    CommandParameter="{Binding}" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+
+                            <DataGridTemplateColumn Header="Book" Width="110">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <Button Content="Edit" Style="{StaticResource SecondaryButton}"
+                                                    FontSize="11" Padding="7,2" Margin="0,0,4,0"
+                                                    IsEnabled="{Binding CanEdit}"
+                                                    ToolTip="Load this row into the form. Only Pending and Handed-over rows can be edited — and never their status or amount after clearing."
+                                                    Command="{Binding DataContext.EditChequeCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                    CommandParameter="{Binding}" />
+                                            <Button Content="Del" Style="{StaticResource DangerButton}"
+                                                    FontSize="11" Padding="7,2"
+                                                    IsEnabled="{Binding CanDelete}"
+                                                    ToolTip="Delete a Pending row with no receipt behind it. Anything else stays in the book as history."
+                                                    Command="{Binding DataContext.DeleteChequeCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                    CommandParameter="{Binding}" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                    <!-- Honest empty state: two different messages, because they need different fixes -->
+                    <Border Grid.Row="1" Background="{StaticResource SurfaceBrush}"
+                            Visibility="{Binding ShowEmptyState, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="420">
+                            <TextBlock Text="The register is empty" Style="{StaticResource SubHeadingTextBlock}"
+                                       HorizontalAlignment="Center" />
+                            <TextBlock Text="{Binding EmptyStateText}" FontSize="12" TextWrapping="Wrap"
+                                       TextAlignment="Center" Margin="0,8,0,0"
+                                       Foreground="{StaticResource TextSecondaryBrush}" />
+                            <Button Content="Show Everything" Command="{Binding RefreshCommand}"
+                                    Style="{StaticResource SecondaryButton}" HorizontalAlignment="Center" Margin="0,12,0,0" />
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </Border>
+
+            <!-- ================= Add / edit form ================= -->
+            <Border Grid.Column="1" Style="{StaticResource CardBorder}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="16">
+                        <TextBlock Text="{Binding FormHeading}" Style="{StaticResource SubHeadingTextBlock}" />
+
+                        <TextBlock Text="Direction" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,10,0,4" />
+                        <ComboBox ItemsSource="{Binding Directions}" SelectedItem="{Binding NewDirection}"
+                                  Style="{StaticResource BaseComboBox}"
+                                  ToolTip="In = a cheque received from a customer. Out = a cheque paid to a supplier." />
+
+                        <TextBlock Text="Party Type" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,6,0,4" />
+                        <ComboBox ItemsSource="{Binding PartyTypes}" SelectedItem="{Binding NewPartyType}"
+                                  Style="{StaticResource BaseComboBox}" />
+
+                        <TextBlock Text="Party Name (as written on the leaf)" FontWeight="SemiBold"
+                                   Foreground="{StaticResource TextSecondaryBrush}" Margin="0,6,0,4" />
+                        <TextBox Text="{Binding NewPartyName, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource BaseTextBox}" />
+
+                        <TextBlock Text="Cheque Number (bank's printed leaf number)" FontWeight="SemiBold"
+                                   Foreground="{StaticResource TextSecondaryBrush}" Margin="0,6,0,4" />
+                        <TextBox Text="{Binding NewChequeNumber, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource BaseTextBox}" />
+
+                        <TextBlock Text="Bank / Branch" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,6,0,4" />
+                        <TextBox Text="{Binding NewBankName, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource BaseTextBox}" />
+
+                        <TextBlock Text="Issue Date (the day it was drawn / received)" FontWeight="SemiBold"
+                                   Foreground="{StaticResource TextSecondaryBrush}" Margin="0,6,0,4" />
+                        <DatePicker SelectedDate="{Binding NewIssueDate, UpdateSourceTrigger=PropertyChanged}"
+                                    Style="{StaticResource BaseDatePicker}" />
+
+                        <TextBlock Text="Presentment Date (the date on the cheque face)" FontWeight="SemiBold"
+                                   Foreground="{StaticResource TextSecondaryBrush}" Margin="0,6,0,4" />
+                        <DatePicker SelectedDate="{Binding NewPresentmentDate, UpdateSourceTrigger=PropertyChanged}"
+                                    Style="{StaticResource BaseDatePicker}" />
+                        <TextBlock FontSize="11" TextWrapping="Wrap" Foreground="{StaticResource TextSecondaryBrush}">
+                            <TextBlock.Text>
+                                <Binding Path="PdcWindowMonths"
+                                         StringFormat="Not before the issue date, and no further than {0} months after it — beyond that a post-dated cheque is not bankable, so the register blocks it. A date already in the past is allowed and warned about." />
+                            </TextBlock.Text>
+                        </TextBlock>
+
+                        <TextBlock Text="Amount" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,8,0,4" />
+                        <TextBox Text="{Binding NewAmount, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource BaseTextBox}" />
+
+                        <CheckBox Content="Raise a receipt automatically when this cheque clears"
+                                  IsChecked="{Binding NewCreateReceiptOnClear}" Margin="0,6,0,0"
+                                  ToolTip="Off by default, so clearing a cheque never moves money by accident. When on, the receipt is raised through the Payments engine (oldest invoice first) only if that financial year is unlocked — and only for a received cheque." />
+
+                        <TextBlock Text="Notes" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,8,0,4" />
+                        <TextBox Text="{Binding NewNotes, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource BaseTextBox}"
+                                 AcceptsReturn="True" TextWrapping="Wrap" Height="56" VerticalScrollBarVisibility="Auto" />
+
+                        <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                            <Button Content="{Binding FormHeading}" Command="{Binding SaveChequeCommand}"
+                                    Style="{StaticResource SuccessButton}" MinWidth="150" />
+                            <Button Content="New / Clear" Command="{Binding ClearFormCommand}"
+                                    Style="{StaticResource SecondaryButton}" Margin="8,0,0,0"
+                                    ToolTip="Empty the form and go back to adding a cheque." />
+                        </StackPanel>
+
+                        <Border Background="{StaticResource BackgroundBrush}" CornerRadius="4" Padding="10" Margin="0,14,0,0">
+                            <StackPanel>
+                                <TextBlock Text="Bounce reason for the row's &quot;Bounced&quot; button" FontWeight="SemiBold" FontSize="11"
+                                           Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" />
+                                <ComboBox ItemsSource="{Binding BounceReasons}" SelectedItem="{Binding BounceReason}"
+                                          Style="{StaticResource BaseComboBox}" Margin="0,6,0,0"
+                                          ToolTip="The bank's return-memo reason. Required, because a bounced row is final and the reason can never be added later." />
+                            </StackPanel>
+                        </Border>
+
+                        <TextBlock Text="Why is this blocked?" FontWeight="SemiBold" FontSize="11" Margin="0,14,0,2"
+                                   Foreground="{StaticResource ErrorBrush}"
+                                   Visibility="{Binding LastValidationError, Converter={StaticResource StringToVisibilityConverter}}" />
+                        <TextBlock Text="{Binding LastValidationError}" FontSize="12" TextWrapping="Wrap"
+                                   Foreground="{StaticResource ErrorBrush}" />
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+
+        <!-- ================= Message strip ================= -->
+        <StackPanel Grid.Row="3" Margin="0,12,0,0">
+            <TextBlock Text="Working…" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"
+                       Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}}" />
+            <TextBlock Text="{Binding SuccessMessage}" Foreground="{StaticResource SuccessBrush}"
+                       FontSize="12" TextWrapping="Wrap"
+                       Visibility="{Binding SuccessMessage, Converter={StaticResource StringToVisibilityConverter}}" />
+            <TextBlock Text="{Binding WarningText}" Foreground="{StaticResource WarningBrush}"
+                       FontSize="12" TextWrapping="Wrap"
+                       Visibility="{Binding WarningText, Converter={StaticResource StringToVisibilityConverter}}" />
+            <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource ErrorBrush}"
+                       FontSize="12" TextWrapping="Wrap"
+                       Visibility="{Binding ErrorMessage, Converter={StaticResource StringToVisibilityConverter}}" />
+        </StackPanel>
+    </Grid>
+</UserControl>

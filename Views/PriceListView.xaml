@@ -1,0 +1,137 @@
+<UserControl x:Class="RetailBillingApp.Views.PriceListView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             d:DesignHeight="600" d:DesignWidth="1200">
+    <Grid Background="{StaticResource BackgroundBrush}" Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,20">
+            <TextBlock Text="Party-wise Pricing" Style="{StaticResource HeadingTextBlock}" />
+            <TextBlock Text="Rates applied at billing: a customer list wins over a group list, otherwise the product master rate is used"
+                       Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" Margin="0,5,0,0" />
+        </StackPanel>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2.2*" MinWidth="300" />
+                <ColumnDefinition Width="15" />
+                <ColumnDefinition Width="1.6*" MinWidth="260" />
+                <ColumnDefinition Width="15" />
+                <ColumnDefinition Width="2.4*" MinWidth="320" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Price Lists -->
+            <Border Grid.Column="0" Style="{StaticResource CardBorder}">
+                <DockPanel>
+                    <TextBlock Text="Price Lists" DockPanel.Dock="Top" Style="{StaticResource SubHeadingTextBlock}" Margin="0,0,0,15" />
+
+                    <DataGrid ItemsSource="{Binding PriceLists}" SelectedItem="{Binding SelectedPriceList}"
+                              Style="{StaticResource DataGridStyle}" AutoGenerateColumns="False">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*" />
+                            <DataGridTextColumn Header="Group" Binding="{Binding CustomerGroup}" Width="100" />
+                            <DataGridTextColumn Header="Valid From" Binding="{Binding ValidFrom, StringFormat=yyyy-MM-dd}" Width="95" />
+                            <DataGridTextColumn Header="Valid To" Binding="{Binding ValidTo, StringFormat=yyyy-MM-dd}" Width="95" />
+                            <DataGridTextColumn Header="Active" Binding="{Binding IsActive}" Width="60" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                    <Button Content="Delete Selected" Command="{Binding DeletePriceListCommand}"
+                            Style="{StaticResource DangerButton}" DockPanel.Dock="Bottom"
+                            HorizontalAlignment="Right" Margin="0,15,0,0" Width="120" />
+                </DockPanel>
+            </Border>
+
+            <!-- Add Price List -->
+            <Border Grid.Column="2" Style="{StaticResource CardBorder}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="20">
+                        <TextBlock Text="Add Price List" Style="{StaticResource SubHeadingTextBlock}" />
+
+                        <TextBlock Text="Name" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,4" />
+                        <TextBox Text="{Binding NewName, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource BaseTextBox}" />
+
+                        <TextBlock Text="Customer Group" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,10,0,4" />
+                        <TextBox Text="{Binding NewCustomerGroup, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource BaseTextBox}" />
+
+                        <TextBlock Text="Or Customer (overrides group)" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,10,0,4" />
+                        <ComboBox ItemsSource="{Binding Customers}" SelectedItem="{Binding SelectedNewCustomer}"
+                                  DisplayMemberPath="Name" Style="{StaticResource BaseComboBox}" />
+
+                        <TextBlock Text="Valid From" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,10,0,4" />
+                        <DatePicker SelectedDate="{Binding NewValidFrom, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource BaseDatePicker}" />
+
+                        <TextBlock Text="Valid To" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,10,0,4" />
+                        <DatePicker SelectedDate="{Binding NewValidTo, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource BaseDatePicker}" />
+
+                        <Button Content="Add Price List" Command="{Binding AddPriceListCommand}"
+                                Style="{StaticResource SuccessButton}" HorizontalAlignment="Stretch" Margin="0,15,0,0" />
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+
+            <!-- Items on the selected list -->
+            <Border Grid.Column="4" Style="{StaticResource CardBorder}">
+                <DockPanel>
+                    <StackPanel DockPanel.Dock="Top" Margin="0,0,0,12">
+                        <TextBlock Text="Rates On Selected List" Style="{StaticResource SubHeadingTextBlock}" />
+                        <TextBlock Text="Pick a list on the left, then add the products it prices."
+                                   Foreground="{StaticResource TextSecondaryBrush}" FontSize="11" Margin="0,4,0,0" />
+                    </StackPanel>
+
+                    <Grid DockPanel.Dock="Top" Margin="0,0,0,12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="90" />
+                            <ColumnDefinition Width="80" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <ComboBox Grid.Column="0" ItemsSource="{Binding Products}" SelectedItem="{Binding ItemProduct}"
+                                  DisplayMemberPath="Name" Style="{StaticResource BaseComboBox}" Margin="0,0,4,0" />
+                        <TextBox Grid.Column="1" Text="{Binding ItemRate, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource BaseTextBox}" Margin="0,0,4,0" />
+                        <TextBox Grid.Column="2" Text="{Binding ItemDiscountPct, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource BaseTextBox}" Margin="0,0,4,0" />
+                        <Button Grid.Column="3" Content="Set Rate" Command="{Binding AddListItemCommand}"
+                                Style="{StaticResource PrimaryButton}" Width="90" />
+                    </Grid>
+
+                    <DataGrid ItemsSource="{Binding SelectedPriceList.Items}"
+                              Style="{StaticResource DataGridStyle}" AutoGenerateColumns="False" IsReadOnly="True">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Product" Binding="{Binding Product.Name}" Width="*" />
+                            <DataGridTextColumn Header="List Rate" Binding="{Binding Rate, StringFormat=C}" Width="90" />
+                            <DataGridTextColumn Header="Disc %" Binding="{Binding DiscountPct}" Width="70" />
+                            <DataGridTextColumn Header="Net" Binding="{Binding EffectiveRate}" Width="90" />
+                            <DataGridTemplateColumn Width="80">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Button Content="Remove" Command="{Binding DataContext.RemoveListItemCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                CommandParameter="{Binding}" Style="{StaticResource DangerButton}"
+                                                FontSize="11" Padding="6,2" />
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+            </Border>
+        </Grid>
+
+        <!-- Messages -->
+        <StackPanel Grid.Row="2" Margin="0,10,0,0">
+            <TextBlock Text="{Binding SuccessMessage, Mode=OneWay}" Foreground="{StaticResource SuccessBrush}"
+                       FontSize="12" TextWrapping="Wrap" />
+            <TextBlock Text="{Binding ErrorMessage, Mode=OneWay}" Foreground="{StaticResource ErrorBrush}"
+                       FontSize="12" TextWrapping="Wrap" />
+        </StackPanel>
+    </Grid>
+</UserControl>

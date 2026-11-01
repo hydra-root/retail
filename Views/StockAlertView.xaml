@@ -1,0 +1,86 @@
+<UserControl x:Class="RetailBillingApp.Views.StockAlertView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             d:DesignHeight="600" d:DesignWidth="1000">
+    <Grid Background="{StaticResource BackgroundBrush}" Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,20">
+            <TextBlock Text="Stock Alerts" Style="{StaticResource HeadingTextBlock}" />
+        </StackPanel>
+
+        <!-- Summary KPI cards -->
+        <UniformGrid Grid.Row="1" Columns="4" Margin="0,0,0,20">
+            <Border Style="{StaticResource CardBorder}" Margin="0,0,10,0" Padding="15">
+                <StackPanel>
+                    <TextBlock Text="Out of Stock" Style="{StaticResource SubHeadingTextBlock}" FontSize="12" />
+                    <TextBlock Text="{Binding OutOfStockCount}" FontSize="28" FontWeight="Bold"
+                               Foreground="{StaticResource ErrorBrush}" />
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource CardBorder}" Margin="0,0,10,0" Padding="15">
+                <StackPanel>
+                    <TextBlock Text="Low Stock" Style="{StaticResource SubHeadingTextBlock}" FontSize="12" />
+                    <TextBlock Text="{Binding LowStockCount}" FontSize="28" FontWeight="Bold"
+                               Foreground="{StaticResource WarningBrush}" />
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource CardBorder}" Margin="0,0,10,0" Padding="15">
+                <StackPanel>
+                    <TextBlock Text="Expiring ≤ 30 days" Style="{StaticResource SubHeadingTextBlock}" FontSize="12" />
+                    <TextBlock Text="{Binding ExpiringSoonCount}" FontSize="28" FontWeight="Bold"
+                               Foreground="{StaticResource WarningBrush}" />
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource CardBorder}" Padding="15">
+                <StackPanel>
+                    <TextBlock Text="Expired" Style="{StaticResource SubHeadingTextBlock}" FontSize="12" />
+                    <TextBlock Text="{Binding ExpiredCount}" FontSize="28" FontWeight="Bold"
+                               Foreground="{StaticResource ErrorBrush}" />
+                </StackPanel>
+            </Border>
+        </UniformGrid>
+
+        <!-- Filter + Alert list -->
+        <Border Grid.Row="2" Style="{StaticResource CardBorder}">
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,15">
+                    <TextBlock Text="Filter:" VerticalAlignment="Center" Margin="0,0,10,0" />
+                    <ComboBox ItemsSource="{Binding AlertFilters}"
+                              SelectedItem="{Binding SelectedFilter}"
+                              Style="{StaticResource BaseComboBox}"
+                              MinWidth="150" />
+                    <Button Content="Refresh" Command="{Binding RefreshCommand}"
+                            Style="{StaticResource SecondaryButton}" Margin="15,0,0,0" />
+                </StackPanel>
+
+                <DataGrid ItemsSource="{Binding FilteredAlerts}"
+                          SelectedItem="{Binding SelectedAlert}"
+                          Style="{StaticResource DataGridStyle}"
+                          AutoGenerateColumns="False" IsReadOnly="True">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Product" Binding="{Binding ProductName}" Width="*" />
+                        <DataGridTextColumn Header="SKU" Binding="{Binding SKU}" Width="100" />
+                        <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="120" />
+                        <DataGridTextColumn Header="Alert" Binding="{Binding AlertType}" Width="120" />
+                        <DataGridTextColumn Header="Severity" Binding="{Binding Severity}" Width="90" />
+                        <DataGridTextColumn Header="Stock" Binding="{Binding CurrentStock}" Width="70" />
+                        <DataGridTextColumn Header="Min" Binding="{Binding MinStockQty}" Width="70" />
+                        <DataGridTextColumn Header="Reorder" Binding="{Binding ReorderQty}" Width="80" />
+                        <DataGridTextColumn Header="Expiry" Binding="{Binding ExpiryDate, StringFormat=dd-MMM-yyyy}" Width="110" />
+                        <DataGridTextColumn Header="Days Left" Binding="{Binding DaysToExpiry}" Width="80" />
+                        <DataGridTextColumn Header="Recommendation" Binding="{Binding Recommendation}" Width="*" />
+                    </DataGrid.Columns>
+                </DataGrid>
+            </DockPanel>
+        </Border>
+    </Grid>
+</UserControl>

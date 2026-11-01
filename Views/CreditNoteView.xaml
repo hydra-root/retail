@@ -1,0 +1,170 @@
+<UserControl x:Class="RetailBillingApp.Views.CreditNoteView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             d:DesignHeight="720" d:DesignWidth="1100">
+    <Grid Background="{StaticResource BackgroundBrush}" Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,20">
+            <TextBlock Text="Credit / Debit Notes" Style="{StaticResource HeadingTextBlock}" />
+            <TextBlock Text="Returns against an invoice (GSTR-1 CDNR): credit restores stock, debit deducts it under the negative-stock policy"
+                       Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" Margin="0,5,0,0" />
+        </StackPanel>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*" />
+                <ColumnDefinition Width="3*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Credit Note Register -->
+            <Border Grid.Column="0" Style="{StaticResource CardBorder}">
+                <DockPanel>
+                    <StackPanel DockPanel.Dock="Top" Margin="0,0,0,15">
+                        <TextBlock Text="Note Register" Style="{StaticResource SubHeadingTextBlock}" />
+                        <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                            <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource BaseTextBox}" Width="220" Margin="0,0,8,0" />
+                            <ComboBox ItemsSource="{Binding TypeFilters}" SelectedItem="{Binding TypeFilter}"
+                                      Style="{StaticResource BaseComboBox}" MinWidth="100" Margin="0,0,8,0" />
+                            <Button Content="Refresh" Command="{Binding RefreshCommand}"
+                                    Style="{StaticResource SecondaryButton}" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                            <Button Content="Cancel Selected" Command="{Binding CancelSelectedNoteCommand}"
+                                    Style="{StaticResource SecondaryButton}" Margin="0,0,8,0" />
+                            <Button Content="Delete Selected" Command="{Binding DeleteSelectedNoteCommand}"
+                                    Style="{StaticResource DangerButton}" />
+                            <TextBlock Text="(cancel reverses stock; both stay audited)"
+                                       VerticalAlignment="Center" Margin="10,0,0,0" FontSize="11"
+                                       Foreground="{StaticResource TextSecondaryBrush}" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <DataGrid ItemsSource="{Binding FilteredCreditNotes}" SelectedItem="{Binding SelectedCreditNote}"
+                              Style="{StaticResource DataGridStyle}" AutoGenerateColumns="False" IsReadOnly="True">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="CN #" Binding="{Binding CreditNoteNumber}" Width="110" />
+                            <DataGridTextColumn Header="Type" Binding="{Binding Type}" Width="70" />
+                            <DataGridTextColumn Header="Invoice" Binding="{Binding OriginalInvoiceNumber}" Width="110" />
+                            <DataGridTextColumn Header="Customer" Binding="{Binding CustomerName}" Width="*" />
+                            <DataGridTextColumn Header="Date" Binding="{Binding CreditNoteDate, StringFormat=yyyy-MM-dd}" Width="90" />
+                            <DataGridTextColumn Header="Total" Binding="{Binding TotalAmount, StringFormat=C}" Width="100" />
+                            <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="80" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+            </Border>
+
+            <!-- Create Credit / Debit Note Form -->
+            <Border Grid.Column="1" Style="{StaticResource CardBorder}">
+                <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="20">
+                        <TextBlock Text="Create Credit / Debit Note" Style="{StaticResource SubHeadingTextBlock}" />
+
+                        <TextBlock Text="Type" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,10,0,4" />
+                        <ComboBox ItemsSource="{Binding NoteTypes}" SelectedItem="{Binding NewType}"
+                                  Style="{StaticResource BaseComboBox}" />
+
+                        <TextBlock Text="Original Invoice (open / pending, optional)" FontWeight="SemiBold"
+                                   Foreground="{StaticResource TextSecondaryBrush}" Margin="0,10,0,4" />
+                        <ComboBox ItemsSource="{Binding PendingInvoices}" SelectedItem="{Binding SelectedInvoice}"
+                                  DisplayMemberPath="InvoiceNumber" Style="{StaticResource BaseComboBox}" />
+                        <TextBlock Text="{Binding SelectedInvoiceHint}" FontSize="11" TextWrapping="Wrap"
+                                   Foreground="{StaticResource TextSecondaryBrush}" Margin="0,4,0,0" />
+
+                        <TextBlock Text="Customer (when no invoice is linked)" FontWeight="SemiBold"
+                                   Foreground="{StaticResource TextSecondaryBrush}" Margin="0,10,0,4" />
+                        <ComboBox ItemsSource="{Binding Customers}" SelectedItem="{Binding SelectedCustomer}"
+                                  DisplayMemberPath="Name" Style="{StaticResource BaseComboBox}" />
+                        <TextBox Text="{Binding NewCustomerName, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource BaseTextBox}" Margin="0,6,0,0"
+                                 ToolTip="Walk-in customer name if there is no customer record" />
+
+                        <TextBlock Text="Reason" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,10,0,4" />
+                        <TextBox Text="{Binding NewReason, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource BaseTextBox}" />
+
+                        <!-- Items -->
+                        <TextBlock Text="Items" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,20,0,10" />
+
+                        <DataGrid ItemsSource="{Binding NewItems}" Style="{StaticResource DataGridStyle}" AutoGenerateColumns="False" Height="180">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Product" Binding="{Binding ProductName}" Width="*" />
+                                <DataGridTextColumn Header="HSN" Binding="{Binding HSNCode}" Width="80" />
+                                <DataGridTextColumn Header="Qty" Binding="{Binding Quantity}" Width="60" />
+                                <DataGridTextColumn Header="Rate" Binding="{Binding Rate, StringFormat=C}" Width="100" />
+                                <DataGridTextColumn Header="Tax %" Binding="{Binding TaxPercentage}" Width="70" />
+                                <DataGridTextColumn Header="Total" Binding="{Binding Total, StringFormat=C}" Width="100" />
+                                <DataGridTemplateColumn Width="80">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Button Content="Remove" Command="{Binding DataContext.RemoveItemFromCreditNoteCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                    CommandParameter="{Binding}" Style="{StaticResource DangerButton}" FontSize="11" Padding="6,2" />
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+
+                        <Grid Margin="0,10,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" MinWidth="180" />
+                                <ColumnDefinition Width="70" />
+                                <ColumnDefinition Width="90" />
+                                <ColumnDefinition Width="70" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <ComboBox Grid.Column="0" ItemsSource="{Binding Products}" SelectedItem="{Binding SelectedProduct}"
+                                      DisplayMemberPath="Name" Style="{StaticResource BaseComboBox}" Margin="0,0,4,0" />
+                            <TextBox Grid.Column="1" Text="{Binding NewProductQty, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource BaseTextBox}" Margin="0,0,4,0" ToolTip="Qty" />
+                            <TextBox Grid.Column="2" Text="{Binding NewProductRate, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource BaseTextBox}" Margin="0,0,4,0" ToolTip="Rate (editable)" />
+                            <TextBox Grid.Column="3" Text="{Binding NewProductTax, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource BaseTextBox}" Margin="0,0,4,0" ToolTip="Tax %" />
+                            <Button Grid.Column="4" Content="Add" Command="{Binding AddItemToCreditNoteCommand}"
+                                    Width="80" Style="{StaticResource PrimaryButton}" Margin="4,0,0,0" />
+                        </Grid>
+
+                        <Border Background="{StaticResource SurfaceBrush}" Padding="15" CornerRadius="6" Margin="0,20,0,0">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="150" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <TextBlock Text="Subtotal" Grid.Row="0" Grid.Column="0" Foreground="{StaticResource TextSecondaryBrush}" />
+                                <TextBlock Text="{Binding NewSubTotal, StringFormat=C}" Grid.Row="0" Grid.Column="1" FontWeight="SemiBold" />
+
+                                <TextBlock Text="Tax" Grid.Row="1" Grid.Column="0" Foreground="{StaticResource TextSecondaryBrush}" />
+                                <TextBlock Text="{Binding NewTaxAmount, StringFormat=C}" Grid.Row="1" Grid.Column="1" FontWeight="SemiBold" />
+
+                                <TextBlock Text="TOTAL" Grid.Row="2" Grid.Column="0" FontWeight="Bold" FontSize="16" Foreground="{StaticResource PrimaryBrush}" />
+                                <TextBlock Text="{Binding NewTotalAmount, StringFormat=C}" Grid.Row="2" Grid.Column="1" FontWeight="Bold" FontSize="16" Foreground="{StaticResource PrimaryBrush}" />
+                            </Grid>
+                        </Border>
+
+                        <TextBlock Text="{Binding SuccessMessage}" Foreground="{StaticResource SuccessBrush}"
+                                   FontSize="12" Margin="0,15,0,0" TextWrapping="Wrap" />
+                        <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource ErrorBrush}"
+                                   FontSize="12" Margin="0,8,0,0" TextWrapping="Wrap" />
+
+                        <Button Content="Issue Credit / Debit Note" Command="{Binding CreateCreditNoteCommand}"
+                                Style="{StaticResource SuccessButton}" HorizontalAlignment="Stretch" Margin="0,15,0,0" />
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

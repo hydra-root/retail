@@ -1,0 +1,243 @@
+<UserControl x:Class="RetailBillingApp.Views.DashboardView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:controls="clr-namespace:RetailBillingApp.Controls"
+             xmlns:conv="clr-namespace:RetailBillingApp.Converters"
+             mc:Ignorable="d"
+             d:DesignHeight="900" d:DesignWidth="1000">
+    <UserControl.Resources>
+        <conv:ZeroToVisibilityConverter x:Key="ZeroToVisibilityConverter" />
+    </UserControl.Resources>
+    <Grid Background="{StaticResource BackgroundBrush}" Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Header with period selector + refresh -->
+        <Grid Grid.Row="0" Margin="0,0,0,10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0">
+                <TextBlock Text="Dashboard" Style="{StaticResource HeadingTextBlock}" Margin="0,0,0,2" />
+                <TextBlock Text="Business overview at a glance" Foreground="{StaticResource TextSecondaryBrush}" />
+            </StackPanel>
+
+            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Top">
+                <ComboBox ItemsSource="{Binding PeriodOptions}"
+                          DisplayMemberPath="Label"
+                          SelectedItem="{Binding SelectedPeriod}"
+                          Style="{StaticResource BaseComboBox}"
+                          MinWidth="150" VerticalAlignment="Center"
+                          AutomationProperties.Name="Trend period" />
+                <Button Content="Refresh" Command="{Binding RefreshCommand}"
+                        Style="{StaticResource PrimaryButton}" VerticalAlignment="Center" />
+            </StackPanel>
+        </Grid>
+
+        <!-- KPI Cards -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Cash in Hand -->
+            <Border Grid.Column="0" Style="{StaticResource CardBorder}">
+                <StackPanel>
+                    <TextBlock Text="Cash in Hand" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}" />
+                    <TextBlock Text="{Binding Stats.CashInHand, StringFormat={}{0:C}}" FontSize="28" FontWeight="Bold" Margin="0,8,0,0" />
+                </StackPanel>
+            </Border>
+
+            <!-- Stock Value -->
+            <Border Grid.Column="1" Style="{StaticResource CardBorder}">
+                <StackPanel>
+                    <TextBlock Text="Stock Value" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}" />
+                    <TextBlock Text="{Binding Stats.StockValue, StringFormat={}{0:C}}" FontSize="28" FontWeight="Bold" Margin="0,8,0,0" />
+                </StackPanel>
+            </Border>
+
+            <!-- Daily Sales -->
+            <Border Grid.Column="2" Style="{StaticResource CardBorder}">
+                <StackPanel>
+                    <TextBlock Text="Today's Sales" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}" />
+                    <TextBlock Text="{Binding Stats.DailySales, StringFormat={}{0:C}}" FontSize="28" FontWeight="Bold" Margin="0,8,0,0" />
+                </StackPanel>
+            </Border>
+
+            <!-- Pending Dues -->
+            <Border Grid.Column="3" Style="{StaticResource CardBorder}">
+                <StackPanel>
+                    <TextBlock Text="Pending Dues" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}" />
+                    <TextBlock Text="{Binding Stats.PendingDues, StringFormat={}{0:C}}" FontSize="28" FontWeight="Bold" Margin="0,8,0,0" />
+                </StackPanel>
+            </Border>
+
+            <!-- Low Stock Count -->
+            <Border Grid.Column="4" Style="{StaticResource CardBorder}">
+                <StackPanel>
+                    <TextBlock Text="Low Stock Items" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}" />
+                    <TextBlock Text="{Binding Stats.LowStockCount}" FontSize="28" FontWeight="Bold" Margin="0,8,0,0" Foreground="{StaticResource WarningBrush}" />
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- Charts -->
+        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+
+                <!-- Sales trend -->
+                <Border Style="{StaticResource CardBorder}">
+                    <StackPanel>
+                        <Grid Margin="0,0,0,12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Sales Trend" Style="{StaticResource SubHeadingTextBlock}" Margin="0" />
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center">
+                                <Rectangle Width="12" Height="12" RadiusX="2" RadiusY="2" Fill="{StaticResource PrimaryBrush}" VerticalAlignment="Center" />
+                                <TextBlock Text="Sales" FontSize="12" Margin="6,0,18,0" VerticalAlignment="Center"
+                                           Foreground="{StaticResource TextSecondaryBrush}" />
+                                <Line X1="0" Y1="6" X2="22" Y2="6" Stroke="{StaticResource WarningBrush}" StrokeThickness="2"
+                                      StrokeDashArray="4 3" VerticalAlignment="Center" />
+                                <TextBlock Text="Invoices" FontSize="12" Margin="6,0,0,0" VerticalAlignment="Center"
+                                           Foreground="{StaticResource TextSecondaryBrush}" />
+                            </StackPanel>
+                            <TextBlock Grid.Column="2" Text="{Binding SalesTrendSummary}" FontSize="13" FontWeight="SemiBold"
+                                       VerticalAlignment="Center" Foreground="{StaticResource TextPrimaryBrush}" />
+                        </Grid>
+                        <controls:ChartBarSeries Height="250"
+                                                 ItemsSource="{Binding SalesTrend}"
+                                                 Orientation="Vertical"
+                                                 ShowSecondaryLine="True"
+                                                 BarBrush="{StaticResource PrimaryBrush}"
+                                                 SecondaryBrush="{StaticResource WarningBrush}"
+                                                 LabelBrush="{StaticResource TextSecondaryBrush}"
+                                                 EmptyMessage="No sales in this period"
+                                                 AutomationProperties.Name="Daily sales trend with invoice count" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Payment mix + Receivables ageing -->
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <Border Grid.Column="0" Style="{StaticResource CardBorder}">
+                        <StackPanel>
+                            <TextBlock Text="Payment Mode Mix" Style="{StaticResource SubHeadingTextBlock}" />
+                            <controls:ChartDonutSeries Height="230"
+                                                      ItemsSource="{Binding PaymentMix}"
+                                                      IsCount="False"
+                                                      CenterTitle="Period Sales"
+                                                      CenterValue="{Binding PaymentMixCenterValue}"
+                                                      LabelBrush="{StaticResource TextSecondaryBrush}"
+                                                      EmptyMessage="No payments in this period"
+                                                      AutomationProperties.Name="Payment mode mix donut" />
+                        </StackPanel>
+                    </Border>
+
+                    <Border Grid.Column="1" Style="{StaticResource CardBorder}">
+                        <StackPanel>
+                            <Grid Margin="0,0,0,8">
+                                <TextBlock Text="Receivables Ageing" Style="{StaticResource SubHeadingTextBlock}" Margin="0" />
+                                <TextBlock HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="13" FontWeight="SemiBold"
+                                           Foreground="{StaticResource ErrorBrush}">
+                                    <TextBlock.Inlines>
+                                        <Run Text="Total: " />
+                                        <Run Text="{Binding ReceivablesTotalText, Mode=OneWay}" />
+                                    </TextBlock.Inlines>
+                                </TextBlock>
+                            </Grid>
+                            <controls:ChartBarSeries Height="230"
+                                                     ItemsSource="{Binding ReceivablesAgeing}"
+                                                     Orientation="Horizontal"
+                                                     LabelBrush="{StaticResource TextSecondaryBrush}"
+                                                     EmptyMessage="No outstanding dues"
+                                                     AutomationProperties.Name="Receivables ageing bars" />
+                        </StackPanel>
+                    </Border>
+                </Grid>
+
+                <!-- Stock health + Top products by value -->
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <Border Grid.Column="0" Style="{StaticResource CardBorder}">
+                        <StackPanel>
+                            <TextBlock Text="Stock Health" Style="{StaticResource SubHeadingTextBlock}" />
+                            <controls:ChartDonutSeries Height="210"
+                                                      ItemsSource="{Binding StockHealth}"
+                                                      IsCount="True"
+                                                      CenterTitle="Total SKUs"
+                                                      CenterValue="{Binding StockHealthCenterValue}"
+                                                      LabelBrush="{StaticResource TextSecondaryBrush}"
+                                                      EmptyMessage="No products yet"
+                                                      AutomationProperties.Name="Healthy versus low stock split" />
+                        </StackPanel>
+                    </Border>
+
+                    <Border Grid.Column="1" Style="{StaticResource CardBorder}">
+                        <StackPanel>
+                            <TextBlock Text="Top 5 Products by Stock Value" Style="{StaticResource SubHeadingTextBlock}" />
+                            <controls:ChartBarSeries Height="210"
+                                                     ItemsSource="{Binding TopStockValues}"
+                                                     Orientation="Horizontal"
+                                                     BarBrush="{StaticResource SuccessBrush}"
+                                                     LabelBrush="{StaticResource TextSecondaryBrush}"
+                                                     EmptyMessage="No stock value data"
+                                                     AutomationProperties.Name="Top five products by stock value" />
+                        </StackPanel>
+                    </Border>
+                </Grid>
+
+                <!-- Low Stock Alerts -->
+                <Border Style="{StaticResource CardBorder}" MaxHeight="300">
+                    <Border.Triggers>
+                        <EventTrigger RoutedEvent="Border.Loaded">
+                            <BeginStoryboard>
+                                <Storyboard>
+                                    <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0" To="1" Duration="0:0:0.5" />
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </EventTrigger>
+                    </Border.Triggers>
+                    <StackPanel Margin="0">
+                        <TextBlock Text="Low Stock Alerts" Style="{StaticResource SubHeadingTextBlock}" />
+                        <DataGrid ItemsSource="{Binding LowStockItems}" Style="{StaticResource DataGridStyle}" AutoGenerateColumns="False" MaxHeight="200"
+                                  Visibility="{Binding LowStockItems.Count, Converter={StaticResource IntToVisibilityConverter}}">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Product" Binding="{Binding ProductName}" Width="*" />
+                                <DataGridTextColumn Header="Stock" Binding="{Binding StockQty}" Width="100" />
+                                <DataGridTextColumn Header="Min Qty" Binding="{Binding MinStockQty}" Width="100" />
+                                <DataGridTextColumn Header="Batch" Binding="{Binding Batch}" Width="100" />
+                                <DataGridTextColumn Header="Expiry" Binding="{Binding ExpiryDate, StringFormat=yyyy-MM-dd}" Width="120" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+                        <TextBlock Text="No low-stock items — every product is above its minimum."
+                                   Foreground="{StaticResource TextSecondaryBrush}" FontStyle="Italic"
+                                   Visibility="{Binding LowStockItems.Count, Converter={StaticResource ZeroToVisibilityConverter}}" />
+                    </StackPanel>
+                </Border>
+
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

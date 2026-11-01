@@ -1,0 +1,120 @@
+<UserControl x:Class="RetailBillingApp.Views.CashBookView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             d:DesignHeight="700" d:DesignWidth="1100">
+    <Grid Background="{StaticResource BackgroundBrush}" Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*"
+ />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Header + toolbar -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,15">
+            <TextBlock Text="Cash &amp; Bank Book" Style="{StaticResource HeadingTextBlock}" />
+            <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                <TextBlock Text="Account:" VerticalAlignment="Center" Margin="0,0,8,0" />
+                <ComboBox ItemsSource="{Binding Accounts}" DisplayMemberPath="Name"
+                          SelectedItem="{Binding SelectedAccount}"
+                          Style="{StaticResource BaseComboBox}" MinWidth="180"
+                          ToolTip="Leave empty to see the combined book of all Cash/Bank accounts" />
+                <TextBlock Text="From:" VerticalAlignment="Center" Margin="15,0,8,0" />
+                <DatePicker SelectedDate="{Binding StartDate}" Style="{StaticResource BaseDatePicker}" />
+                <TextBlock Text="To:" VerticalAlignment="Center" Margin="10,0,8,0" />
+                <DatePicker SelectedDate="{Binding EndDate}" Style="{StaticResource BaseDatePicker}" />
+                <Button Content="Generate" Command="{Binding GenerateCommand}"
+                        Style="{StaticResource PrimaryButton}" Margin="15,0,0,0" MinWidth="95" />
+                <Button Content="New Transfer" Command="{Binding ToggleTransferFormCommand}"
+                        Style="{StaticResource SecondaryButton}" Margin="10,0,0,0" MinWidth="110" />
+                <Button Content="Export CSV" Command="{Binding ExportCsvCommand}"
+                        Style="{StaticResource SecondaryButton}" Margin="10,0,0,0" />
+            </StackPanel>
+        </StackPanel>
+
+        <!-- Transfer form -->
+        <Border Grid.Row="1" Style="{StaticResource CardBorder}" Margin="0,0,0,15"
+                Visibility="{Binding IsTransferFormVisible, Converter={StaticResource BoolToVisibilityConverter}}">
+            <StackPanel Orientation="Horizontal" Margin="12">
+                <TextBlock Text="From:" VerticalAlignment="Center" Margin="0,0,8,0" />
+                <ComboBox ItemsSource="{Binding Accounts}" DisplayMemberPath="Name"
+                          SelectedItem="{Binding TransferFrom}"
+                          Style="{StaticResource BaseComboBox}" MinWidth="150" />
+                <TextBlock Text="To:" VerticalAlignment="Center" Margin="12,0,8,0" />
+                <ComboBox ItemsSource="{Binding Accounts}" DisplayMemberPath="Name"
+                          SelectedItem="{Binding TransferTo}"
+                          Style="{StaticResource BaseComboBox}" MinWidth="150" />
+                <TextBlock Text="Amount:" VerticalAlignment="Center" Margin="12,0,8,0" />
+                <TextBox Text="{Binding TransferAmountText, UpdateSourceTrigger=PropertyChanged}"
+                         Style="{StaticResource BaseTextBox}" MinWidth="100" />
+                <TextBlock Text="Date:" VerticalAlignment="Center" Margin="12,0,8,0" />
+                <DatePicker SelectedDate="{Binding TransferDate}" Style="{StaticResource BaseDatePicker}" />
+                <TextBox Text="{Binding TransferNarration, UpdateSourceTrigger=PropertyChanged}"
+                         Style="{StaticResource BaseTextBox}" MinWidth="160"
+                         ToolTip="Optional narration" />
+                <Button Content="Save Transfer" Command="{Binding SaveTransferCommand}"
+                        Style="{StaticResource PrimaryButton}" Margin="12,0,0,0" MinWidth="115" />
+            </StackPanel>
+        </Border>
+
+        <!-- Summary cards -->
+        <UniformGrid Grid.Row="2" Columns="4" Margin="0,0,0,15">
+            <Border Style="{StaticResource CardBorder}" Margin="0,0,8,0" Padding="12">
+                <StackPanel>
+                    <TextBlock Text="Opening Balance" Style="{StaticResource SubHeadingTextBlock}" FontSize="11" />
+                    <TextBlock Text="{Binding Report.OpeningBalance, StringFormat={}{0:C}}" FontSize="20" FontWeight="Bold" />
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource CardBorder}" Margin="0,0,8,0" Padding="12">
+                <StackPanel>
+                    <TextBlock Text="Total In 📥" Style="{StaticResource SubHeadingTextBlock}" FontSize="11" />
+                    <TextBlock Text="{Binding Report.TotalIn, StringFormat={}{0:C}}" FontSize="20" FontWeight="Bold"
+                               Foreground="{StaticResource SuccessBrush}" />
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource CardBorder}" Margin="0,0,8,0" Padding="12">
+                <StackPanel>
+                    <TextBlock Text="Total Out 📤" Style="{StaticResource SubHeadingTextBlock}" FontSize="11" />
+                    <TextBlock Text="{Binding Report.TotalOut, StringFormat={}{0:C}}" FontSize="20" FontWeight="Bold"
+                               Foreground="{StaticResource ErrorBrush}" />
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource CardBorder}" Padding="12">
+                <StackPanel>
+                    <TextBlock Text="Closing Balance" Style="{StaticResource SubHeadingTextBlock}" FontSize="11" />
+                    <TextBlock Text="{Binding Report.ClosingBalance, StringFormat={}{0:C}}" FontSize="20" FontWeight="Bold" />
+                </StackPanel>
+            </Border>
+        </UniformGrid>
+
+        <!-- Cash book grid -->
+        <Border Grid.Row="3" Style="{StaticResource CardBorder}">
+            <DataGrid ItemsSource="{Binding Rows}" Style="{StaticResource DataGridStyle}"
+                      AutoGenerateColumns="False" IsReadOnly="True">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Date" Binding="{Binding Date, StringFormat=dd-MMM-yyyy}" Width="100" />
+                    <DataGridTextColumn Header="Account" Binding="{Binding AccountName}" Width="170" />
+                    <DataGridTextColumn Header="Type" Binding="{Binding Type}" Width="160" />
+                    <DataGridTextColumn Header="Reference" Binding="{Binding Reference}" Width="150" />
+                    <DataGridTextColumn Header="Narration" Binding="{Binding Narration}" Width="*" />
+                    <DataGridTextColumn Header="In" Binding="{Binding In, StringFormat=C}" Width="110" />
+                    <DataGridTextColumn Header="Out" Binding="{Binding Out, StringFormat=C}" Width="110" />
+                    <DataGridTextColumn Header="Balance" Binding="{Binding RunningBalance, StringFormat=C}" Width="120" />
+                </DataGrid.Columns>
+            </DataGrid>
+        </Border>
+
+        <!-- Messages -->
+        <StackPanel Grid.Row="4" Margin="0,10,0,0">
+            <TextBlock Text="{Binding SuccessMessage}" Foreground="{StaticResource SuccessBrush}"
+                       FontSize="12" TextWrapping="Wrap" />
+            <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource ErrorBrush}"
+                       FontSize="12" TextWrapping="Wrap" />
+        </StackPanel>
+    </Grid>
+</UserControl>

@@ -1,0 +1,134 @@
+<UserControl x:Class="RetailBillingApp.Views.TallyExportView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             d:DesignHeight="760" d:DesignWidth="1200">
+    <Grid Background="{StaticResource BackgroundBrush}" Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Header + toolbar -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,15">
+            <TextBlock Text="Tally / Excel Export" Style="{StaticResource HeadingTextBlock}" />
+            <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                <TextBlock Text="Document:" VerticalAlignment="Center" Margin="0,0,6,0" />
+                <ComboBox ItemsSource="{Binding DocumentTypes}" SelectedItem="{Binding SelectedDocumentType}"
+                          Style="{StaticResource BaseComboBox}" MinWidth="170" />
+                <TextBlock Text="Format:" VerticalAlignment="Center" Margin="12,0,6,0" />
+                <ComboBox ItemsSource="{Binding Formats}" SelectedItem="{Binding SelectedFormat}"
+                          Style="{StaticResource BaseComboBox}" MinWidth="160"
+                          ToolTip="Tally XML imports into TallyPrime; CSV and Excel XML open directly in Excel" />
+                <StackPanel Orientation="Horizontal" Margin="12,0,0,0"
+                            Visibility="{Binding IsStoreFilterVisible, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <TextBlock Text="Store:" VerticalAlignment="Center" Margin="0,0,6,0" />
+                    <ComboBox ItemsSource="{Binding Stores}" DisplayMemberPath="Name"
+                              SelectedItem="{Binding SelectedStore}"
+                              Style="{StaticResource BaseComboBox}" MinWidth="140" />
+                </StackPanel>
+                <TextBlock Text="From:" VerticalAlignment="Center" Margin="12,0,6,0" />
+                <DatePicker SelectedDate="{Binding StartDate, UpdateSourceTrigger=PropertyChanged}"
+                            Style="{StaticResource BaseDatePicker}" />
+                <TextBlock Text="To:" VerticalAlignment="Center" Margin="8,0,6,0" />
+                <DatePicker SelectedDate="{Binding EndDate, UpdateSourceTrigger=PropertyChanged}"
+                            Style="{StaticResource BaseDatePicker}" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                <TextBlock Text="Save to folder:" VerticalAlignment="Center" Margin="0,0,6,0" />
+                <TextBox Text="{Binding OutputFolder, UpdateSourceTrigger=PropertyChanged}"
+                         Style="{StaticResource BaseTextBox}" MinWidth="360"
+                         ToolTip="Blank means the Desktop, like the rest of the exports" />
+                <Button Content="Browse..." Command="{Binding BrowseDestinationCommand}"
+                        Style="{StaticResource SecondaryButton}" Margin="10,0,0,0" MinWidth="90" />
+                <Button Content="Export" Command="{Binding ExportCommand}"
+                        Style="{StaticResource PrimaryButton}" Margin="10,0,0,0" MinWidth="100" />
+                <Button Content="Open Folder" Command="{Binding OpenFolderCommand}"
+                        Style="{StaticResource SecondaryButton}" Margin="10,0,0,0" MinWidth="110" />
+            </StackPanel>
+        </StackPanel>
+
+        <!-- How-to card for the accountant -->
+        <Border Grid.Row="1" Style="{StaticResource CardBorder}" Margin="0,0,0,15">
+            <StackPanel Margin="15">
+                <TextBlock Text="How to import into TallyPrime" Style="{StaticResource SubHeadingTextBlock}" />
+                <TextBlock FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,6,0,0">
+                    <Run Text="1. Back up the Tally company before importing.  " />
+                    <Run Text="2. Gateway of Tally, Import, Configure Import Options: set Nature of Data to Masters (or Transaction Vouchers for voucher files), File to Import to the exported .xml, and Units to be used for Import to your base units.  " />
+                    <Run Text="3. Import Data (Alt+O then Import on newer releases) and pick the file. Export and import Masters before standalone voucher files, or use a Combined export which carries both.  " />
+                    <Run Text="4. Check the import report for rejected vouchers, then re-check the GST registers: tax-type ledgers and group mappings from this app may need renaming to your company's own ledgers." />
+                </TextBlock>
+            </StackPanel>
+        </Border>
+
+        <!-- Preview counters -->
+        <UniformGrid Grid.Row="2" Columns="4" Margin="0,0,0,15">
+            <Border Style="{StaticResource CardBorder}" Margin="0,0,8,0" Padding="12">
+                <StackPanel>
+                    <TextBlock Text="Documents in Range" Style="{StaticResource SubHeadingTextBlock}" FontSize="11" />
+                    <TextBlock Text="{Binding PreviewDocumentCount}" FontSize="24" FontWeight="Bold" />
+                    <TextBlock Text="this document type, this range" FontSize="11"
+                               Foreground="{StaticResource TextSecondaryBrush}" />
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource CardBorder}" Margin="0,0,8,0" Padding="12">
+                <StackPanel>
+                    <TextBlock Text="Skipped" Style="{StaticResource SubHeadingTextBlock}" FontSize="11" />
+                    <TextBlock Text="{Binding PreviewSkippedCount}" FontSize="24" FontWeight="Bold"
+                               Foreground="{StaticResource WarningBrush}" />
+                    <TextBlock Text="estimates, unbalanced or cancelled documents" FontSize="11"
+                               Foreground="{StaticResource TextSecondaryBrush}" />
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource CardBorder}" Margin="0,0,8,0" Padding="12">
+                <StackPanel>
+                    <TextBlock Text="Warnings" Style="{StaticResource SubHeadingTextBlock}" FontSize="11" />
+                    <TextBlock Text="{Binding Warnings.Count}" FontSize="24" FontWeight="Bold"
+                               Foreground="{StaticResource ErrorBrush}" />
+                    <TextBlock Text="read every one before importing" FontSize="11"
+                               Foreground="{StaticResource TextSecondaryBrush}" />
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource CardBorder}" Padding="12">
+                <StackPanel>
+                    <TextBlock Text="Last Export" Style="{StaticResource SubHeadingTextBlock}" FontSize="11" />
+                    <TextBlock Text="{Binding LastExportPath}" FontSize="11" TextWrapping="Wrap"
+                               Foreground="{StaticResource TextPrimaryBrush}" MinHeight="30" />
+                </StackPanel>
+            </Border>
+        </UniformGrid>
+
+        <!-- Warnings list -->
+        <Border Grid.Row="3" Style="{StaticResource CardBorder}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0" Text="Warnings and skips" Style="{StaticResource SubHeadingTextBlock}"
+                           Margin="4,0,0,8" />
+                <DataGrid Grid.Row="1" ItemsSource="{Binding Warnings}" Style="{StaticResource DataGridStyle}"
+                          AutoGenerateColumns="False" IsReadOnly="True" HeadersVisibility="Column"
+                          CanUserAddRows="False">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="What the accountant must know before importing"
+                                            Binding="{Binding}" Width="*" />
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
+        </Border>
+
+        <!-- Messages -->
+        <StackPanel Grid.Row="4" Margin="0,10,0,0">
+            <TextBlock Text="{Binding SuccessMessage}" Foreground="{StaticResource SuccessBrush}"
+                       FontSize="12" TextWrapping="Wrap" />
+            <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource ErrorBrush}"
+                       FontSize="12" TextWrapping="Wrap" />
+        </StackPanel>
+    </Grid>
+</UserControl>

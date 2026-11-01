@@ -1,0 +1,151 @@
+<UserControl x:Class="RetailBillingApp.Views.StockAuditReportView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             d:DesignHeight="760" d:DesignWidth="1200">
+    <Grid Background="{StaticResource BackgroundBrush}" Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Header + toolbar -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,15">
+            <TextBlock Text="Stock Audit" Style="{StaticResource HeadingTextBlock}" />
+            <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                <TextBlock Text="From:" VerticalAlignment="Center" Margin="0,0,6,0" />
+                <DatePicker SelectedDate="{Binding StartDate, UpdateSourceTrigger=PropertyChanged}"
+                            Style="{StaticResource BaseDatePicker}" />
+                <TextBlock Text="To:" VerticalAlignment="Center" Margin="12,0,6,0" />
+                <DatePicker SelectedDate="{Binding EndDate, UpdateSourceTrigger=PropertyChanged}"
+                            Style="{StaticResource BaseDatePicker}" />
+                <TextBlock Text="Flag:" VerticalAlignment="Center" Margin="15,0,6,0" />
+                <ComboBox ItemsSource="{Binding Filters}" SelectedItem="{Binding Filter}"
+                          Style="{StaticResource BaseComboBox}" MinWidth="160" />
+                <TextBlock Text="Search:" VerticalAlignment="Center" Margin="15,0,6,0" />
+                <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                         Style="{StaticResource BaseTextBox}" MinWidth="180" />
+                <Button Content="Run Audit" Command="{Binding RefreshCommand}"
+                        Style="{StaticResource PrimaryButton}" Margin="15,0,0,0" />
+                <Button Content="Export CSV" Command="{Binding ExportCsvCommand}"
+                        Style="{StaticResource SecondaryButton}" Margin="10,0,0,0" />
+            </StackPanel>
+            <TextBlock Text="Unrecorded Qty = book quantity minus everything the stock ledger accounts for. A gap means stock was set on the product master without an opening movement, or a document moved stock without posting a ledger row - both need investigating."
+                       Foreground="{StaticResource TextSecondaryBrush}" FontSize="11" TextWrapping="Wrap" Margin="0,10,0,0" />
+        </StackPanel>
+
+        <!-- Summary cards -->
+        <WrapPanel Grid.Row="1" Margin="0,0,0,15">
+            <Border Style="{StaticResource CardBorder}" Margin="0,0,10,10" MinWidth="180">
+                <StackPanel Margin="15">
+                    <TextBlock Text="Products Audited" Style="{StaticResource SubHeadingTextBlock}" FontSize="11" />
+                    <TextBlock Text="{Binding Summary.ProductCount}" FontSize="24" FontWeight="Bold" />
+                    <TextBlock Text="{Binding Summary.CleanCount, StringFormat={}{0} clean}" FontSize="11"
+                               Foreground="{StaticResource SuccessBrush}" />
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource CardBorder}" Margin="0,0,10,10" MinWidth="180">
+                <StackPanel Margin="15">
+                    <TextBlock Text="Unrecorded Stock Rows" Style="{StaticResource SubHeadingTextBlock}" FontSize="11" />
+                    <TextBlock Text="{Binding Summary.MismatchCount}" FontSize="24" FontWeight="Bold"
+                               Foreground="{StaticResource ErrorBrush}" />
+                    <TextBlock FontSize="11" Foreground="{StaticResource TextSecondaryBrush}">
+                        <TextBlock.Text>
+                            <Binding Path="Summary.MismatchValue" StringFormat="Net value {0:C}" />
+                        </TextBlock.Text>
+                    </TextBlock>
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource CardBorder}" Margin="0,0,10,10" MinWidth="180">
+                <StackPanel Margin="15">
+                    <TextBlock Text="Negative Stock" Style="{StaticResource SubHeadingTextBlock}" FontSize="11" />
+                    <TextBlock Text="{Binding Summary.NegativeStockCount}" FontSize="24" FontWeight="Bold"
+                               Foreground="{StaticResource WarningBrush}" />
+                    <TextBlock Text="Set by Stock Policy (STK-03)" FontSize="11"
+                               Foreground="{StaticResource TextSecondaryBrush}" />
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource CardBorder}" Margin="0,0,10,10" MinWidth="180">
+                <StackPanel Margin="15">
+                    <TextBlock Text="Unposted Counts" Style="{StaticResource SubHeadingTextBlock}" FontSize="11" />
+                    <TextBlock Text="{Binding Summary.UnpostedCountCount}" FontSize="24" FontWeight="Bold"
+                               Foreground="{StaticResource WarningBrush}" />
+                    <TextBlock FontSize="11" Foreground="{StaticResource TextSecondaryBrush}">
+                        <TextBlock.Text>
+                            <Binding Path="Summary.LastCountDate" StringFormat="Last count {0:yyyy-MM-dd}"
+                                     TargetNullValue="No completed count yet" />
+                        </TextBlock.Text>
+                    </TextBlock>
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource CardBorder}" Margin="0,0,10,10" MinWidth="180">
+                <StackPanel Margin="15">
+                    <TextBlock Text="No Movement In Period" Style="{StaticResource SubHeadingTextBlock}" FontSize="11" />
+                    <TextBlock Text="{Binding Summary.NoMovementCount}" FontSize="24" FontWeight="Bold" />
+                    <TextBlock FontSize="11" Foreground="{StaticResource TextSecondaryBrush}">
+                        <TextBlock.Text>
+                            <Binding Path="Summary.NoMovementValue" StringFormat="Tied up {0:C}" />
+                        </TextBlock.Text>
+                    </TextBlock>
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource CardBorder}" Margin="0,0,10,10" MinWidth="180">
+                <StackPanel Margin="15">
+                    <TextBlock Text="Total Stock Value" Style="{StaticResource SubHeadingTextBlock}" FontSize="11" />
+                    <TextBlock Text="{Binding Summary.TotalStockValue, StringFormat={}{0:C}}" FontSize="24" FontWeight="Bold"
+                               Foreground="{StaticResource SuccessBrush}" />
+                    <TextBlock FontSize="11" Foreground="{StaticResource TextSecondaryBrush}">
+                        <TextBlock.Text>
+                            <Binding Path="Summary.BelowMinimumCount" StringFormat="At or below minimum: {0}" />
+                        </TextBlock.Text>
+                    </TextBlock>
+                </StackPanel>
+            </Border>
+        </WrapPanel>
+
+        <TextBlock Grid.Row="2" Margin="0,0,0,10" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}">
+            <TextBlock.Text>
+                <Binding Path="Filter" StringFormat="Showing {0}. Double-check Unrecorded Stock rows against purchase bills and the audit trail." />
+            </TextBlock.Text>
+        </TextBlock>
+
+        <!-- Audit sheet -->
+        <Border Grid.Row="3" Style="{StaticResource CardBorder}">
+            <DataGrid ItemsSource="{Binding FilteredRows}" Style="{StaticResource DataGridStyle}"
+                      AutoGenerateColumns="False" IsReadOnly="True">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Product" Binding="{Binding ProductName}" Width="*" />
+                    <DataGridTextColumn Header="SKU" Binding="{Binding SKU}" Width="100" />
+                    <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="110" />
+                    <DataGridTextColumn Header="Opening" Binding="{Binding OpeningQty, StringFormat=N2}" Width="80" />
+                    <DataGridTextColumn Header="In" Binding="{Binding QtyIn, StringFormat=N2}" Width="70" />
+                    <DataGridTextColumn Header="Out" Binding="{Binding QtyOut, StringFormat=N2}" Width="70" />
+                    <DataGridTextColumn Header="Closing" Binding="{Binding ClosingQty, StringFormat=N2}" Width="80" />
+                    <DataGridTextColumn Header="Book" Binding="{Binding BookQty, StringFormat=N2}" Width="70" />
+                    <DataGridTextColumn Header="Ledger" Binding="{Binding LedgerQty, StringFormat=N2}" Width="70" />
+                    <DataGridTextColumn Header="Unrecorded" Binding="{Binding LedgerVariance, StringFormat=N2}" Width="90" />
+                    <DataGridTextColumn Header="Unrecorded Value" Binding="{Binding VarianceValue, StringFormat=C}" Width="130" />
+                    <DataGridTextColumn Header="Last Count" Binding="{Binding LastCountDate, StringFormat=yyyy-MM-dd}" Width="95" />
+                    <DataGridTextColumn Header="Counted" Binding="{Binding LastCountedQty}" Width="75" />
+                    <DataGridTextColumn Header="Count Diff" Binding="{Binding CountVariance, StringFormat=N2}" Width="85" />
+                    <DataGridTextColumn Header="Last Movement" Binding="{Binding LastMovementDate, StringFormat=yyyy-MM-dd}" Width="110" />
+                    <DataGridTextColumn Header="Stock Value" Binding="{Binding StockValue, StringFormat=C}" Width="120" />
+                    <DataGridTextColumn Header="Flag" Binding="{Binding ExceptionText}" Width="220" />
+                </DataGrid.Columns>
+            </DataGrid>
+        </Border>
+
+        <!-- Messages -->
+        <StackPanel Grid.Row="4" Margin="0,10,0,0">
+            <TextBlock Text="{Binding SuccessMessage}" Foreground="{StaticResource SuccessBrush}"
+                       FontSize="12" TextWrapping="Wrap" />
+            <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource ErrorBrush}"
+                       FontSize="12" TextWrapping="Wrap" />
+        </StackPanel>
+    </Grid>
+</UserControl>

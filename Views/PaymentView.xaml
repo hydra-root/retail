@@ -1,0 +1,216 @@
+<UserControl x:Class="RetailBillingApp.Views.PaymentView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             d:DesignHeight="600" d:DesignWidth="1000">
+    <Grid Background="{StaticResource BackgroundBrush}" Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,20">
+            <TextBlock Text="Payments &amp; Receipts" Style="{StaticResource HeadingTextBlock}" />
+            <Button Content="+ New Payment" Command="{Binding CreatePaymentCommand}"
+                    Style="{StaticResource SuccessButton}" HorizontalAlignment="Right" Margin="20,0,0,0" Width="140" />
+        </StackPanel>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*" />
+                <ColumnDefinition Width="3*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Payment List -->
+            <Border Grid.Column="0" Style="{StaticResource CardBorder}">
+                <DockPanel>
+                    <StackPanel DockPanel.Dock="Top" Margin="0,0,0,15">
+                        <TextBlock Text="Payment Register" Style="{StaticResource SubHeadingTextBlock}" />
+                        <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource BaseTextBox}" Width="300" />
+                        <Button Content="Print Receipt (Selected)" Command="{Binding PrintReceiptCommand}"
+                                Style="{StaticResource SecondaryButton}" HorizontalAlignment="Left"
+                                Margin="0,8,0,0" MinWidth="150" />
+                    </StackPanel>
+
+                    <!-- PAY-01: per-settle-mode summary of the loaded register -->
+                    <Border DockPanel.Dock="Bottom" Margin="0,15,0,0">
+                        <StackPanel>
+                            <TextBlock Text="Per-Mode Summary (loaded register)" Style="{StaticResource SubHeadingTextBlock}"
+                                       FontSize="12" Margin="0,0,0,6" />
+                            <DataGrid ItemsSource="{Binding ModeSummaryRows}" Style="{StaticResource DataGridStyle}"
+                                      AutoGenerateColumns="False" IsReadOnly="True" MaxHeight="160">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Mode" Binding="{Binding Mode}" Width="*" />
+                                    <DataGridTextColumn Header="Lines" Binding="{Binding LineCount}" Width="55" />
+                                    <DataGridTextColumn Header="Received" Binding="{Binding Received, StringFormat=C}" Width="100" />
+                                    <DataGridTextColumn Header="Paid Out" Binding="{Binding Paid, StringFormat=C}" Width="100" />
+                                    <DataGridTextColumn Header="Settlement" Binding="{Binding Status}" Width="130" />
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </StackPanel>
+                    </Border>
+
+                    <DataGrid ItemsSource="{Binding FilteredPayments}" SelectedItem="{Binding SelectedPayment}"
+                              Style="{StaticResource DataGridStyle}" AutoGenerateColumns="False">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Payment #" Binding="{Binding PaymentNumber}" Width="*" />
+                            <DataGridTextColumn Header="Type" Binding="{Binding Direction}" Width="60" />
+                            <DataGridTextColumn Header="Party" Binding="{Binding PartyName}" Width="120" />
+                            <DataGridTextColumn Header="Date" Binding="{Binding PaymentDate, StringFormat=yyyy-MM-dd}" Width="100" />
+                            <DataGridTextColumn Header="Amount" Binding="{Binding Amount, StringFormat=C}" Width="100" />
+                            <DataGridTextColumn Header="Mode" Binding="{Binding PaymentMode}" Width="80" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+            </Border>
+
+            <!-- New Payment Form -->
+            <Border Grid.Column="1" Style="{StaticResource CardBorder}">
+                <ScrollViewer>
+                    <StackPanel Margin="20">
+                        <TextBlock Text="New Payment / Receipt" Style="{StaticResource SubHeadingTextBlock}" />
+
+                        <TextBlock Text="Direction" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,4" />
+                        <ComboBox ItemsSource="{Binding Directions}" SelectedItem="{Binding NewDirection}"
+                                  Style="{StaticResource BaseComboBox}" />
+
+                        <TextBlock Text="Party Type" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,10,0,4" />
+                        <ComboBox ItemsSource="{Binding PartyTypes}" SelectedItem="{Binding NewPartyType}"
+                                  Style="{StaticResource BaseComboBox}" />
+
+                        <TextBlock Text="Party Name" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,10,0,4" />
+                        <TextBox Text="{Binding NewPartyName, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource BaseTextBox}" />
+
+                        <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                            <Button Content="Load Open Invoices" Command="{Binding LoadOutstandingCommand}"
+                                    Style="{StaticResource SecondaryButton}" MinWidth="130" />
+                            <Button Content="Auto Allocate (FIFO)" Command="{Binding AllocateFifoCommand}"
+                                    Style="{StaticResource PrimaryButton}" MinWidth="140" Margin="8,0,0,0" />
+                        </StackPanel>
+
+                        <!-- PAY-03: party's open invoices (FIFO order) -->
+                        <DataGrid ItemsSource="{Binding OutstandingInvoices}" SelectedItem="{Binding SelectedOutstandingInvoice}"
+                                  Style="{StaticResource DataGridStyle}" AutoGenerateColumns="False" IsReadOnly="True"
+                                  MaxHeight="140" Margin="0,10,0,0"
+                                  Visibility="{Binding IsOutstandingVisible, Converter={StaticResource BoolToVisibilityConverter}}">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Invoice #" Binding="{Binding InvoiceNumber}" Width="*" />
+                                <DataGridTextColumn Header="Date" Binding="{Binding InvoiceDate, StringFormat=dd-MMM-yyyy}" Width="90" />
+                                <DataGridTextColumn Header="Total" Binding="{Binding TotalAmount, StringFormat=C}" Width="85" />
+                                <DataGridTextColumn Header="Paid" Binding="{Binding PaidAmount, StringFormat=C}" Width="85" />
+                                <DataGridTextColumn Header="Remaining" Binding="{Binding Remaining, StringFormat=C}" Width="90" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+                        <Button Content="Apply Selected Invoice" Command="{Binding ApplySelectedOutstandingCommand}"
+                                Style="{StaticResource SecondaryButton}" HorizontalAlignment="Left" Margin="0,8,0,0"
+                                Visibility="{Binding IsOutstandingVisible, Converter={StaticResource BoolToVisibilityConverter}}" />
+
+                        <TextBlock Text="Amount" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,10,0,4" />
+                        <TextBox Text="{Binding NewAmount, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource BaseTextBox}" />
+
+                        <TextBlock Text="Payment Mode" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,10,0,4" />
+                        <ComboBox ItemsSource="{Binding PaymentModes}" SelectedItem="{Binding NewPaymentMode}"
+                                  Style="{StaticResource BaseComboBox}" />
+
+                        <!-- PAY-01: split settle-mode lines (optional — empty keeps the single mode above) -->
+                        <TextBlock Text="Split Payments (optional — lines must total the amount)" FontWeight="SemiBold"
+                                   Foreground="{StaticResource TextSecondaryBrush}" Margin="0,10,0,4" />
+
+                        <DataGrid ItemsSource="{Binding NewSplits}" SelectedItem="{Binding SelectedNewSplit}"
+                                  Style="{StaticResource DataGridStyle}" AutoGenerateColumns="False" IsReadOnly="True" Height="110">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Mode" Binding="{Binding Mode}" Width="90" />
+                                <DataGridTextColumn Header="Amount" Binding="{Binding Amount, StringFormat=C}" Width="100" />
+                                <DataGridTextColumn Header="Reference" Binding="{Binding Reference}" Width="*" />
+                                <DataGridTemplateColumn Width="80">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Button Content="Remove"
+                                                    Command="{Binding DataContext.RemoveSplitCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                    CommandParameter="{Binding}" Style="{StaticResource DangerButton}" FontSize="11" Padding="6,2" />
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+
+                        <Grid Margin="0,10,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="110" />
+                                <ColumnDefinition Width="90" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <ComboBox Grid.Column="0" ItemsSource="{Binding SplitModes}" SelectedItem="{Binding NewSplitMode}"
+                                      Style="{StaticResource BaseComboBox}" Margin="0,0,4,0" />
+                            <TextBox Grid.Column="1" Text="{Binding NewSplitAmount, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource BaseTextBox}" Margin="0,0,4,0" />
+                            <TextBox Grid.Column="2" Text="{Binding NewSplitReference, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource BaseTextBox}" />
+                            <Button Grid.Column="3" Content="Add Split" Command="{Binding AddSplitCommand}"
+                                    Style="{StaticResource PrimaryButton}" MinWidth="90" Margin="8,0,0,0" />
+                        </Grid>
+
+                        <StackPanel Orientation="Horizontal" Margin="0,6,0,0"
+                                    Visibility="{Binding HasSplitLines, Converter={StaticResource BoolToVisibilityConverter}}">
+                            <TextBlock Text="Splits short of the amount by: " FontSize="11"
+                                       Foreground="{StaticResource TextSecondaryBrush}" />
+                            <TextBlock Text="{Binding SplitDifference, StringFormat={}{0:C}}" FontSize="11"
+                                       Foreground="{StaticResource ErrorBrush}" />
+                        </StackPanel>
+                        <TextBlock FontSize="11" TextWrapping="Wrap" Margin="0,4,0,0"
+                                   Foreground="{StaticResource TextSecondaryBrush}"
+                                   Text="A reference (cheque no / UPI txn id) is optional per line; mode Credit means not settled now — that portion stays outstanding, it is not received cash." />
+
+                        <TextBlock Text="Reference" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,10,0,4" />
+                        <TextBox Text="{Binding NewReference, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource BaseTextBox}" />
+
+                        <TextBlock Text="Remaining Amount" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,10,0,4" />
+                        <TextBox Text="{Binding NewRemainingAmount, StringFormat=C, Mode=OneWay}" IsReadOnly="True"
+                                 Style="{StaticResource BaseTextBox}" />
+
+                        <!-- Allocations -->
+                        <TextBlock Text="Invoice Allocations" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,20,0,10" />
+
+                        <DataGrid ItemsSource="{Binding NewAllocations}" Style="{StaticResource DataGridStyle}" AutoGenerateColumns="False" Height="150">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Invoice #" Binding="{Binding InvoiceNumber}" Width="*" />
+                                <DataGridTextColumn Header="Allocated" Binding="{Binding AllocatedAmount, StringFormat=C}" Width="100" />
+                                <DataGridTemplateColumn Width="80">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Button Content="Remove" Command="{Binding DataContext.RemoveAllocationCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" CommandParameter="{Binding}" Style="{StaticResource DangerButton}" FontSize="11" Padding="6,2" />
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+
+                        <Grid Margin="0,10,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="100" />
+                                <ColumnDefinition Width="100" />
+                            </Grid.ColumnDefinitions>
+                            <TextBox Text="{Binding NewAllocationInvoiceNumber, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource BaseTextBox}" Grid.Column="0" Margin="0,0,4,0" />
+                            <TextBox Text="{Binding NewAllocationAmount, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource BaseTextBox}" Grid.Column="1" Margin="0,0,4,0" />
+                            <Button Content="Add Allocation" Command="{Binding AddAllocationCommand}" Grid.RowSpan="2" Width="100" Style="{StaticResource PrimaryButton}" Margin="8,0,0,0" />
+                        </Grid>
+
+                        <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource ErrorBrush}"
+                                   FontSize="12" Margin="0,15,0,0" TextWrapping="Wrap" />
+                        <TextBlock Text="{Binding SuccessMessage}" Foreground="{StaticResource SuccessBrush}"
+                                   FontSize="12" Margin="0,4,0,0" TextWrapping="Wrap" />
+
+                        <Button Content="Record Payment" Command="{Binding CreatePaymentCommand}"
+                                Style="{StaticResource SuccessButton}" HorizontalAlignment="Stretch" Margin="0,15,0,0" />
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

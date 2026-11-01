@@ -1,0 +1,166 @@
+<UserControl x:Class="RetailBillingApp.Views.SalesRegisterView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             d:DesignHeight="760" d:DesignWidth="1200">
+    <Grid Background="{StaticResource BackgroundBrush}" Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Header + toolbar -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,15">
+            <TextBlock Text="Sales Register" Style="{StaticResource HeadingTextBlock}" />
+            <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                <TextBlock Text="From:" VerticalAlignment="Center" Margin="0,0,6,0" />
+                <DatePicker SelectedDate="{Binding StartDate, UpdateSourceTrigger=PropertyChanged}"
+                            Style="{StaticResource BaseDatePicker}" />
+                <TextBlock Text="To:" VerticalAlignment="Center" Margin="12,0,6,0" />
+                <DatePicker SelectedDate="{Binding EndDate, UpdateSourceTrigger=PropertyChanged}"
+                            Style="{StaticResource BaseDatePicker}" />
+                <Button Content="This Month" Command="{Binding SetCurrentMonthCommand}"
+                        Style="{StaticResource SecondaryButton}" Margin="12,0,0,0" Padding="10,4" />
+                <Button Content="This F.Y." Command="{Binding SetCurrentFinancialYearCommand}"
+                        Style="{StaticResource SecondaryButton}" Margin="6,0,0,0" Padding="10,4" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                <TextBlock Text="Type:" VerticalAlignment="Center" Margin="0,0,6,0" />
+                <ComboBox ItemsSource="{Binding TypeFilters}" SelectedItem="{Binding TypeFilter}"
+                          Style="{StaticResource BaseComboBox}" MinWidth="130" />
+                <TextBlock Text="Mode:" VerticalAlignment="Center" Margin="12,0,6,0" />
+                <ComboBox ItemsSource="{Binding PaymentModeFilters}" SelectedItem="{Binding PaymentModeFilter}"
+                          Style="{StaticResource BaseComboBox}" MinWidth="110" />
+                <TextBlock Text="Search:" VerticalAlignment="Center" Margin="12,0,6,0" />
+                <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                         Style="{StaticResource BaseTextBox}" MinWidth="180" />
+                <CheckBox Content="Dues only" IsChecked="{Binding DuesOnly}" VerticalAlignment="Center" Margin="12,0,0,0" />
+                <CheckBox Content="Day totals" IsChecked="{Binding ShowDayTotals}" VerticalAlignment="Center" Margin="10,0,0,0" />
+                <CheckBox Content="Include estimates" IsChecked="{Binding IncludeEstimates}" VerticalAlignment="Center" Margin="10,0,0,0" />
+                <Button Content="Refresh" Command="{Binding RefreshCommand}"
+                        Style="{StaticResource PrimaryButton}" Margin="15,0,0,0" />
+                <Button Content="Export CSV" Command="{Binding ExportCsvCommand}"
+                        Style="{StaticResource SecondaryButton}" Margin="10,0,0,0" />
+            </StackPanel>
+            <TextBlock Text="One line per invoice, a day-total line after each trading day and a period total at the bottom. Estimates are listed only when switched on and never counted in the totals, because they are quotations rather than sales."
+                       Foreground="{StaticResource TextSecondaryBrush}" FontSize="11" TextWrapping="Wrap" Margin="0,10,0,0" />
+        </StackPanel>
+
+        <!-- Summary cards -->
+        <WrapPanel Grid.Row="1" Margin="0,0,0,15">
+            <Border Style="{StaticResource CardBorder}" Margin="0,0,10,10" MinWidth="170">
+                <StackPanel Margin="15">
+                    <TextBlock Text="Invoices" Style="{StaticResource SubHeadingTextBlock}" FontSize="11" />
+                    <TextBlock Text="{Binding Totals.InvoiceCount}" FontSize="24" FontWeight="Bold" />
+                    <TextBlock FontSize="11" Foreground="{StaticResource TextSecondaryBrush}">
+                        <TextBlock.Text>
+                            <Binding Path="Totals.LineItemCount" StringFormat="Line items: {0}" />
+                        </TextBlock.Text>
+                    </TextBlock>
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource CardBorder}" Margin="0,0,10,10" MinWidth="170">
+                <StackPanel Margin="15">
+                    <TextBlock Text="Taxable Value" Style="{StaticResource SubHeadingTextBlock}" FontSize="11" />
+                    <TextBlock Text="{Binding Totals.Taxable, StringFormat={}{0:C}}" FontSize="24" FontWeight="Bold" />
+                    <TextBlock FontSize="11" Foreground="{StaticResource TextSecondaryBrush}">
+                        <TextBlock.Text>
+                            <Binding Path="Totals.TaxCollected" StringFormat="Tax {0:C}" />
+                        </TextBlock.Text>
+                    </TextBlock>
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource CardBorder}" Margin="0,0,10,10" MinWidth="170">
+                <StackPanel Margin="15">
+                    <TextBlock Text="Gross Sales" Style="{StaticResource SubHeadingTextBlock}" FontSize="11" />
+                    <TextBlock Text="{Binding Totals.GrossSales, StringFormat={}{0:C}}" FontSize="24" FontWeight="Bold"
+                               Foreground="{StaticResource SuccessBrush}" />
+                    <TextBlock FontSize="11" Foreground="{StaticResource TextSecondaryBrush}">
+                        <TextBlock.Text>
+                            <Binding Path="Totals.AverageBill" StringFormat="Average bill {0:C}" />
+                        </TextBlock.Text>
+                    </TextBlock>
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource CardBorder}" Margin="0,0,10,10" MinWidth="170">
+                <StackPanel Margin="15">
+                    <TextBlock Text="Collected" Style="{StaticResource SubHeadingTextBlock}" FontSize="11" />
+                    <TextBlock Text="{Binding Totals.Collected, StringFormat={}{0:C}}" FontSize="24" FontWeight="Bold" />
+                    <TextBlock FontSize="11" Foreground="{StaticResource TextSecondaryBrush}">
+                        <TextBlock.Text>
+                            <Binding Path="Totals.UniqueCustomers" StringFormat="Named customers: {0}" />
+                        </TextBlock.Text>
+                    </TextBlock>
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource CardBorder}" Margin="0,0,10,10" MinWidth="170">
+                <StackPanel Margin="15">
+                    <TextBlock Text="Balance Due" Style="{StaticResource SubHeadingTextBlock}" FontSize="11" />
+                    <TextBlock Text="{Binding Totals.Balance, StringFormat={}{0:C}}" FontSize="24" FontWeight="Bold"
+                               Foreground="{StaticResource ErrorBrush}" />
+                    <TextBlock FontSize="11" Foreground="{StaticResource TextSecondaryBrush}">
+                        <TextBlock.Text>
+                            <Binding Path="Totals.DuesCount" StringFormat="Still owing: {0} invoice(s)" />
+                        </TextBlock.Text>
+                    </TextBlock>
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource CardBorder}" Margin="0,0,10,10" MinWidth="170">
+                <StackPanel Margin="15">
+                    <TextBlock Text="Register Lines" Style="{StaticResource SubHeadingTextBlock}" FontSize="11" />
+                    <TextBlock Text="{Binding Rows.Count}" FontSize="24" FontWeight="Bold" />
+                    <TextBlock Text="includes day + period totals" FontSize="11"
+                               Foreground="{StaticResource TextSecondaryBrush}" />
+                </StackPanel>
+            </Border>
+        </WrapPanel>
+
+        <!-- Register sheet -->
+        <Border Grid.Row="2" Style="{StaticResource CardBorder}">
+            <DataGrid ItemsSource="{Binding Rows}" Style="{StaticResource DataGridStyle}"
+                      AutoGenerateColumns="False" IsReadOnly="True">
+                <DataGrid.RowStyle>
+                    <Style TargetType="DataGridRow">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsSummary}" Value="True">
+                                <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
+                                <Setter Property="FontWeight" Value="SemiBold" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </DataGrid.RowStyle>
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Invoice No" Binding="{Binding InvoiceNumber}" Width="*" MinWidth="150" />
+                    <DataGridTextColumn Header="Date" Binding="{Binding Date, StringFormat=dd-MM-yyyy}" Width="95" />
+                    <DataGridTextColumn Header="Customer" Binding="{Binding CustomerName}" Width="160" />
+                    <DataGridTextColumn Header="GSTIN" Binding="{Binding Gstin}" Width="130" />
+                    <DataGridTextColumn Header="Place of Supply" Binding="{Binding PlaceOfSupply}" Width="105" />
+                    <DataGridTextColumn Header="Type" Binding="{Binding Type}" Width="105" />
+                    <DataGridTextColumn Header="Items" Binding="{Binding Items}" Width="60" />
+                    <DataGridTextColumn Header="Taxable" Binding="{Binding Taxable, StringFormat=N2}" Width="95" />
+                    <DataGridTextColumn Header="CGST" Binding="{Binding CGST, StringFormat=N2}" Width="75" />
+                    <DataGridTextColumn Header="SGST" Binding="{Binding SGST, StringFormat=N2}" Width="75" />
+                    <DataGridTextColumn Header="IGST" Binding="{Binding IGST, StringFormat=N2}" Width="75" />
+                    <DataGridTextColumn Header="Cess" Binding="{Binding Cess, StringFormat=N2}" Width="70" />
+                    <DataGridTextColumn Header="Total" Binding="{Binding Total, StringFormat=N2}" Width="95" />
+                    <DataGridTextColumn Header="Paid" Binding="{Binding Paid, StringFormat=N2}" Width="90" />
+                    <DataGridTextColumn Header="Balance" Binding="{Binding Balance, StringFormat=N2}" Width="90" />
+                    <DataGridTextColumn Header="Mode" Binding="{Binding PaymentMode}" Width="75" />
+                    <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="80" />
+                </DataGrid.Columns>
+            </DataGrid>
+        </Border>
+
+        <!-- Messages -->
+        <StackPanel Grid.Row="3" Margin="0,10,0,0">
+            <TextBlock Text="{Binding SuccessMessage}" Foreground="{StaticResource SuccessBrush}"
+                       FontSize="12" TextWrapping="Wrap" />
+            <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource ErrorBrush}"
+                       FontSize="12" TextWrapping="Wrap" />
+        </StackPanel>
+    </Grid>
+</UserControl>

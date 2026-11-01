@@ -1,0 +1,109 @@
+<UserControl x:Class="RetailBillingApp.Views.JournalView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             d:DesignHeight="600" d:DesignWidth="1000">
+    <Grid Background="{StaticResource BackgroundBrush}" Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,20">
+            <TextBlock Text="Journal Entries" Style="{StaticResource HeadingTextBlock}" />
+        </StackPanel>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*" />
+                <ColumnDefinition Width="3*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Journal Entry List -->
+            <Border Grid.Column="0" Style="{StaticResource CardBorder}">
+                <DockPanel>
+                    <StackPanel DockPanel.Dock="Top" Margin="0,0,0,15">
+                        <TextBlock Text="All Journal Entries" Style="{StaticResource SubHeadingTextBlock}" />
+                    </StackPanel>
+
+                    <DataGrid ItemsSource="{Binding Entries}" SelectedItem="{Binding SelectedEntry}"
+                              Style="{StaticResource DataGridStyle}" AutoGenerateColumns="False">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Date" Binding="{Binding EntryDate, StringFormat=yyyy-MM-dd}" Width="100" />
+                            <DataGridTextColumn Header="Narration" Binding="{Binding Narration}" Width="*" />
+                            <DataGridTextColumn Header="Ref Type" Binding="{Binding ReferenceType}" Width="100" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+            </Border>
+
+            <!-- New Journal Entry -->
+            <Border Grid.Column="1" Style="{StaticResource CardBorder}">
+                <ScrollViewer>
+                    <StackPanel Margin="20">
+                        <TextBlock Text="New Journal Entry" Style="{StaticResource SubHeadingTextBlock}" />
+
+                        <!-- ACC-03: entry date + header narration -->
+                        <TextBlock Text="Entry Date" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,4" />
+                        <DatePicker SelectedDate="{Binding NewEntryDate}" Style="{StaticResource BaseDatePicker}" />
+
+                        <TextBlock Text="Account" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,4" />
+                        <ComboBox ItemsSource="{Binding Accounts}" DisplayMemberPath="Name"
+                                  SelectedValuePath="Id" SelectedValue="{Binding NewAccountId}"
+                                  Style="{StaticResource BaseComboBox}" />
+
+                        <Grid Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Debit" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" Grid.Column="0" />
+                            <TextBlock Text="Credit" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" Grid.Column="1" />
+                            <TextBox Text="{Binding NewDebit, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource BaseTextBox}" Grid.Column="0" Margin="0,0,4,0" />
+                            <TextBox Text="{Binding NewCredit, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource BaseTextBox}" Grid.Column="1" Margin="4,0,0,0" />
+                        </Grid>
+
+                        <TextBlock Text="Line Narration (optional)" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,10,0,4" />
+                        <TextBox Text="{Binding NewNarration, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource BaseTextBox}" />
+
+                        <TextBlock Text="Entry Narration (header)" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,10,0,4" />
+                        <TextBox Text="{Binding NewEntryNarration, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource BaseTextBox}"
+                                 ToolTip="Defaults to 'Manual journal entry' when left blank" />
+
+                        <Button Content="Add Line" Command="{Binding AddLineCommand}"
+                                Style="{StaticResource PrimaryButton}" HorizontalAlignment="Left" Margin="0,10,0,0" Width="100" />
+
+                        <DataGrid ItemsSource="{Binding NewLines}" Style="{StaticResource DataGridStyle}" AutoGenerateColumns="False" Height="150" Margin="0,10,0,0">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Account" Binding="{Binding Account.Name}" Width="*" />
+                                <DataGridTextColumn Header="Debit" Binding="{Binding Debit, StringFormat=C}" Width="100" />
+                                <DataGridTextColumn Header="Credit" Binding="{Binding Credit, StringFormat=C}" Width="100" />
+                                <DataGridTextColumn Header="Narration" Binding="{Binding Narration}" Width="150" />
+                                <DataGridTemplateColumn Width="80">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Button Content="Remove" Command="{Binding DataContext.RemoveLineCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" CommandParameter="{Binding}" Style="{StaticResource DangerButton}" FontSize="11" Padding="6,2" />
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+
+                        <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource ErrorBrush}"
+                                   FontSize="12" Margin="0,10,0,0" TextWrapping="Wrap" />
+
+                        <Button Content="Post Entry" Command="{Binding PostEntryCommand}"
+                                Style="{StaticResource SuccessButton}" HorizontalAlignment="Stretch" Margin="0,15,0,0" />
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>
