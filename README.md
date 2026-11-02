@@ -1,172 +1,290 @@
-# 🛒 Retail Billing & Inventory Management System
+﻿# Retail Billing & Inventory Management System
 
-A comprehensive, full-featured **retail billing and inventory management** desktop application built with **WPF (.NET 10)** and **SQLite**. Designed for small-to-medium retail businesses, it covers everything from GST-compliant invoicing and multi-store inventory to double-entry accounting, role-based access control, and automated backups.
+A Windows desktop retail management application built with WPF, .NET 10, MVVM, EF Core, and encrypted SQLite. The project is designed for small-to-mid-sized retail and wholesale businesses that need invoice generation, stock tracking, customer and supplier management, accounting workflows, and operational controls in a single desktop application.
 
----
+This repository includes a complete desktop billing workflow with inventory management, GST-aware invoicing, payment handling, credit controls, stock movement tracking, financial reporting, and role-based authorization.
 
-## ✨ Key Features
+## Table of Contents
 
-### 📄 Invoicing & GST Compliance
-- **GST invoices** (B2B/B2C) with CGST/SGST/IGST split and place-of-supply logic
-- **Bill of Supply** and **Estimate** document types with one-click estimate → invoice conversion
-- Tax-inclusive / exclusive pricing per line item with cess support
-- Customizable invoice templates (A4, half-sheet, 80 mm thermal)
-- Automatic numbering series with gap-free audit and FY rollover
-- Print preview with laser and thermal printer support
-- Share invoices via WhatsApp, SMS, and email
+- [Overview](#overview)
+- [Key Features](#key-features)
+- [Application Architecture](#application-architecture)
+- [Project Structure](#project-structure)
+- [Technology Stack](#technology-stack)
+- [Prerequisites](#prerequisites)
+- [Getting Started](#getting-started)
+- [Running the Application](#running-the-application)
+- [Database and Security](#database-and-security)
+- [Default Login](#default-login)
+- [Functional Modules](#functional-modules)
+- [Known Notes](#known-notes)
+- [License](#license)
 
-### 📦 Inventory & Stock Management
-- Product catalog with categories, units, HSN codes, and batch/expiry tracking
-- Real-time stock tracking with adjustments, write-offs, and stock-take workflows
-- Low-stock and expiry alerts with configurable reorder policies
-- Inter-store stock transfers
-- Bulk CSV/Excel import for products and opening stock
-- Price lists with customer/supplier-specific pricing and store-wise overrides
+## Overview
 
-### 💰 Sales & Purchases
-- Full sales register with customer selection and payment tracking
-- Credit sales with FIFO settlement, credit limits, and ageing analysis
-- Purchase management with supplier ledger
-- Credit notes and returns processing
-- Quick POS mode for fast retail billing
+The application is organized around a layered MVVM design:
 
-### 📊 Accounting & Finance
-- Double-entry chart of accounts with auto-posting rules
-- General journal with manual entries
-- Cash book and ledger book views
-- Bank reconciliation
-- Profit & Loss, Balance Sheet, and Cash Flow statements
-- Payables and Receivables ageing reports
-- Financial year management with period close
-- Cheque register with post-dated cheque lifecycle
-- Tally XML export for accountant handoff
+- `Views/` contains WPF windows and user controls
+- `ViewModels/` contains the presentation logic and bindings
+- `Services/` contains business logic for billing, stock, accounting, and reporting
+- `Models/` contains the main domain entities
+- `Data/` contains EF Core configuration and schema upgrade logic
 
-### 📈 Reports & Analytics
-- Dashboard with sales trends, top products, and revenue charts (bar + donut)
-- GST returns data (GSTR-1 / GSTR-3B ready)
-- Item-wise profit analysis
-- Stock valuation report
-- Stock audit trail
-- Store comparison analytics
-- PDF and Excel report exports via QuestPDF and ClosedXML
-- Scheduled report emails on a recurring timer
+The application is intended to run on Windows and is optimized for business workflows commonly used in Indian retail operations, including GST rules, invoice numbering, tax calculation, stock-ledger controls, and store-wise operations.
 
-### 🏪 Multi-Store Support
-- Multi-store configuration with store-wise pricing overrides
-- Store comparison reports
-- HQ sync center with live HTTPS or offline-first outbox queue
+## Key Features
 
-### 🔒 Security & Administration
-- Role-based access control (RBAC) with granular permissions
-- User management with SHA-256 password hashing
-- SQLCipher database encryption at rest with DPAPI key file
-- Passcode-protected critical operations (deletes, write-offs, period close)
-- Full audit trail and activity logging
-- Automated backup scheduler with catch-up runs
-- Data integrity checks
-- Privacy controls and data export
+### Billing and invoicing
+- Create sales invoices with customer selection, item selection, pricing, and quantity handling
+- Support GST-aware invoice calculations and invoice type variations
+- Handle invoice numbering with number-series management
+- Support estimates, credit notes, and invoice conversions
+- Maintain invoice status, payment tracking, and write-off handling
+- Support print preview and printing for invoice layouts
 
-### 🔗 Integrations
-- Unified contacts (customers + suppliers) with vCard/CSV support
-- WhatsApp, SMS, and SMTP email messaging
-- Tally XML export
-- Reminder system with follow-up tracking
+### Inventory management
+- Product catalog with SKU, barcode, category, unit, and stock tracking
+- Batch and expiry tracking for goods
+- Stock transactions and stock movement records
+- Stock adjustments, transfers, and policy enforcement
+- Stock audits and stock take records
 
----
+### Financial and accounting features
+- Journal entries and financial posting
+- Accounts and account groups
+- Cash book and bank reconciliation workflows
+- Payment handling and allocations
+- Sales, receivables, payables, and ledger views
 
-## 🏗 Architecture
+### Customer and supplier operations
+- Customer master data with credit management
+- Supplier and purchase order workflows
+- Credit sale rules and exposure tracking
+- Party-wise account activity and ledger reporting
 
+### Reporting and analytics
+- Dashboard views
+- Sales and financial report pages
+- Ledger, stock valuation, item profit, and cash flow views
+- Scheduled report and export capabilities
+
+### Security and administration
+- Role-based authentication and authorization
+- Admin/user login flow
+- Activity logging and audit trail
+- Critical operation guard flow and override checks
+- Application-level encryption and secure database setup
+
+## Application Architecture
+
+The application uses a standard layered pattern:
+
+```text
+WPF Views
+   ↓
+MVVM ViewModels
+   ↓
+Services / Business Logic
+   ↓
+EF Core DbContext + SQLite/SQLCipher
+   ↓
+Encrypted database file (app.db)
 ```
+
+At startup, the app configures dependency injection, selects the UI theme, applies localization, and initializes the database.
+
+The `App.xaml.cs` file is the composition root for the desktop app and registers the main services used across the solution.
+
+## Project Structure
+
+```text
 RetailBillingApp/
-├── Models/          # 60+ entity classes (EF Core)
-├── Services/        # Interface-driven service layer (50+ services)
-├── Data/            # AppDbContext + schema upgrader
-├── ViewModels/      # MVVM view models (CommunityToolkit.Mvvm)
-├── Views/           # 50+ WPF XAML views
-├── Controls/        # Custom chart controls (bar, donut)
-├── Converters/      # XAML value converters
-├── Print/           # Invoice document builder & text renderer
-└── Resources/       # App theme and styles
+├── App.xaml
+├── App.xaml.cs
+├── MainWindow.xaml
+├── MainWindow.xaml.cs
+├── RetailBillingApp.csproj
+├── RetailBillingApp.slnx
+├── README.md
+├── app.db
+├── app.db.key
+├── crash.txt
+├── Data/
+│   ├── AppDbContext.cs
+│   └── DatabaseSchemaUpgrader.cs
+├── Models/
+│   ├── Account.cs
+│   ├── Customer.cs
+│   ├── Invoice.cs
+│   ├── Product.cs
+│   ├── Store.cs
+│   ├── User.cs
+│   └── ...
+├── Services/
+│   ├── AuthService.cs
+│   ├── InvoiceService.cs
+│   ├── ProductService.cs
+│   ├── PaymentService.cs
+│   ├── SaleService.cs
+│   ├── ReportService.cs
+│   ├── BackupService.cs
+│   └── ...
+├── ViewModels/
+│   ├── DashboardViewModel.cs
+│   ├── InvoicesViewModel.cs
+│   ├── ProductsViewModel.cs
+│   ├── SalesViewModel.cs
+│   ├── LoginViewModel.cs
+│   └── ...
+├── Views/
+│   ├── LoginView.xaml
+│   ├── DashboardView.xaml
+│   ├── InvoicesView.xaml
+│   ├── ProductsView.xaml
+│   ├── ReportsView.xaml
+│   └── ...
+├── Resources/
+│   └── Styles/
+├── Converters/
+├── bin/
+├── obj/
+└── graphify-out/
 ```
 
-**Pattern:** MVVM with dependency injection via `Microsoft.Extensions.DependencyInjection`
+## Technology Stack
 
----
+- .NET 10 WPF desktop application
+- C# / XAML
+- Microsoft.Extensions.DependencyInjection
+- CommunityToolkit.Mvvm
+- Entity Framework Core
+- SQLite with SQLCipher encryption
+- ClosedXML for Excel workflows
+- QuestPDF for PDF/report generation
+- QRCoder for QR code generation
+- MaterialDesignThemes for WPF styling
+- Npgsql.EntityFrameworkCore.PostgreSQL for compatibility with PostgreSQL use-cases
 
-## 🛠 Tech Stack
+## Prerequisites
 
-| Layer | Technology |
-|-------|-----------|
-| **Framework** | .NET 10 / WPF |
-| **Language** | C# (latest, nullable enabled) |
-| **ORM** | Entity Framework Core 10 (SQLite) |
-| **Database** | SQLite + SQLCipher encryption |
-| **MVVM** | CommunityToolkit.Mvvm 8.2.2 |
-| **PDF Export** | QuestPDF 2026.9 (Community) |
-| **Excel Export** | ClosedXML 0.105 |
-| **Encryption** | SQLitePCLRaw.bundle_e_sqlcipher |
+Before running the project, install:
 
----
+- Windows 10 or later
+- .NET 10 SDK
+- Visual Studio 2022 with .NET desktop development workload
+- Optional: Git for cloning
 
-## 🚀 Getting Started
+If the project is built from the command line, ensure the .NET SDK is available in PATH.
 
-### Prerequisites
+## Getting Started
 
-- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) (or later)
-- Windows 10/11
-
-### Build & Run
+### 1. Clone the repository
 
 ```bash
-# Clone the repository
 git clone https://github.com/hydra-root/retail.git
 cd retail
+```
 
-# Restore packages and build
+### 2. Restore dependencies
+
+```bash
 dotnet restore
-dotnet build
+```
 
-# Run the application
+### 3. Build the solution
+
+```bash
+dotnet build
+```
+
+### 4. Run the app
+
+```bash
 dotnet run
 ```
 
-### Default Login
+If you are using Visual Studio, open `RetailBillingApp.slnx` and run the project in Debug mode.
 
-| Username | Password |
-|----------|----------|
-| `admin` | `admin123` |
+## Running the Application
 
-> ⚠️ **Change the default password** after first login.
+On first start, the app initializes its data layer and creates or upgrades the local SQLite database. The app uses the encrypted database connection configured in the startup path, and the database file is created in the project directory unless redirected by configuration.
 
----
+The application will start with the login screen.
 
-## 📦 NuGet Packages
+## Database and Security
 
-| Package | Purpose |
-|---------|---------|
-| `Microsoft.EntityFrameworkCore.Sqlite` | SQLite database provider |
-| `Microsoft.Data.Sqlite.Core` | Low-level SQLite access |
-| `SQLitePCLRaw.bundle_e_sqlcipher` | Database encryption at rest |
-| `CommunityToolkit.Mvvm` | MVVM source generators & base classes |
-| `QuestPDF` | PDF invoice/report generation |
-| `ClosedXML` | Excel report export |
+The project stores its main data in a SQLite database using SQLCipher-backed encryption settings. The codebase includes database upgrade logic and migration-friendly schema creation patterns.
 
----
+Relevant implementation points:
 
-## 📊 Project Status
+- `Data/AppDbContext.cs` defines the EF Core model and DbSet registrations
+- `Data/DatabaseSchemaUpgrader.cs` applies schema updates for an existing database
+- `Services/EncryptionService.cs` and related startup code handle encrypted DB connection configuration
 
-**89% complete** — 80 of 90 planned features implemented and functional.
+The app also includes:
 
-See [`PROGRESS_TRACKING.md`](PROGRESS_TRACKING.md) for the full feature checklist and build status.
+- secure password hashing via PBKDF2-backed hashing logic
+- login lockout support
+- operational audit logging
+- activity tracking on important actions
+- role-based permission checks
 
----
+## Default Login
 
-## 📄 License
+The default seeded administrator account is:
 
-This project is proprietary. All rights reserved.
+- Username: `admin`
+- Password: `admin123`
 
----
+This is created through the app's auth seed flow and is intended for initial setup and local development testing.
 
-## 🤝 Contributing
+## Functional Modules
 
-This is a private project. Please contact the repository owner for contribution guidelines.
+### 1. Dashboard and overview
+The dashboard provides operational summary metrics and quick views of key retail data.
+
+### 2. Products and catalog
+Product management includes pricing, units, categories, codes, batch information, and inventory tracking.
+
+### 3. Customers and suppliers
+Manage customer master records, credit exposure, supplier data, and party activity.
+
+### 4. Sales and invoicing
+Generate and manage invoices, sales transactions, payment receipts, and billing records.
+
+### 5. Stock and inventory controls
+Track goods movement, stock transfer, stock audit, batch expiry, and stock policy checks.
+
+### 6. Purchases and expenses
+Capture purchases, supplier bills, expense records, and financial posting support.
+
+### 7. Accounting and ledger flows
+The accounting layer supports journals, account groups, cash books, financial years, and ledger data views.
+
+### 8. Reports and dashboard analytics
+The application includes report surfaces for sales, ledger, stock valuation, profit, and operational summaries.
+
+### 9. Security and compliance
+This includes role checks, admin safeguards, audit records, and action logging to protect critical operations such as deletion, adjustment, or access to sensitive features.
+
+## Known Notes
+
+- This application is a Windows-only desktop project and is not designed as a browser-based SaaS platform.
+- The repository includes generated local artifacts such as `bin/`, `obj/`, and database files that are not always intended for source control use.
+- Some features documented in the project history are enterprise-oriented and may require additional external integration work to connect to live government or cloud APIs.
+- Before deploying beyond local development, review backup, restore, and encryption settings for real operational usage.
+
+## License
+
+This project currently does not declare a formal license file in the repository root. If you plan to distribute or commercialize this project, confirm the applicable licensing before release.
+
+## Contributing
+
+Contributions are welcome in the form of bug fixes, feature enhancements, documentation improvements, and validation updates. When working on the project:
+
+1. Keep changes aligned with the existing layered architecture.
+2. Prefer service-layer logic over UI-specific implementation.
+3. Validate WPF/XAML changes carefully because binding and resource changes can affect app behavior.
+4. Preserve access-control and audit flows when changing sensitive business logic.
+
+For local development, it is recommended to test the app after changes by building the project and running the WPF app in debug mode.
